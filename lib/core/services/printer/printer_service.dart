@@ -300,6 +300,9 @@ class PrinterService {
               align: PrintAlign.right,
             ),
           ]);
+          if (product.notes != null && product.notes!.trim().isNotEmpty) {
+            ticket.text('  * Note: ${product.notes!.trim()}');
+          }
         }
       }
 
@@ -341,11 +344,90 @@ class PrinterService {
         ),
       ]);
 
+      if (transaction.description != null && transaction.description!.trim().isNotEmpty) {
+        ticket.separator();
+        ticket.text('Note: ${transaction.description!.trim()}');
+      }
+
       ticket.emptyLines();
-      ticket.qrcode('${transaction.id}', size: QRSize.size3);
+      ticket.qrcode(
+        'https://search.google.com/local/writereview/mobile?placeid=ChIJsT8cF-S9eC4RnrekN3z63eI',
+        size: QRSize.size3,
+      );
       ticket.emptyLines();
-      ticket.text('Thank you for your purchase!', align: PrintAlign.center);
-      ticket.text('Yatta!', align: PrintAlign.center);
+      ticket.text('Thank you for your order! ❤️', align: PrintAlign.center);
+      ticket.text('Loved the food? ⭐ Leave us a review!', align: PrintAlign.center);
+      ticket.text('Scan the QR code.', align: PrintAlign.center);
+      ticket.cut(linesBefore: 2);
+
+      return await printTicket(ticket);
+    } catch (e) {
+      return Result.failure(error: e.toString());
+    }
+  }
+
+  Future<Result<void>> printCustomerReceipt(TransactionEntity transaction) async {
+    return printTransaction(transaction);
+  }
+
+  Future<Result<void>> printKitchenTicket(TransactionEntity transaction) async {
+    try {
+      final ticket = await Ticket.create(paperSize);
+
+      ticket.text(
+        '*** KITCHEN TICKET ***',
+        align: PrintAlign.center,
+        style: const PrintTextStyle(
+          bold: true,
+          height: TextSize.size2,
+          width: TextSize.size2,
+        ),
+      );
+      ticket.emptyLines();
+
+      final date = DateTimeFormatter.slashDateShortedYearWithClock(
+        transaction.createdAt ?? DateTime.now().toIso8601String(),
+      );
+
+      ticket.text('Trx. ID: #${transaction.id}', style: const PrintTextStyle(bold: true));
+      ticket.text('Date: $date');
+      if (transaction.customerName != null &&
+          transaction.customerName!.trim().isNotEmpty &&
+          transaction.customerName != '-') {
+        ticket.text('Customer: ${transaction.customerName!.trim()}');
+      }
+
+      ticket.separator();
+
+      if (transaction.orderedProducts != null) {
+        for (final product in transaction.orderedProducts!) {
+          ticket.row([
+            PrintColumn(
+              text: product.name,
+              flex: 3,
+              style: const PrintTextStyle(bold: true),
+            ),
+            PrintColumn(
+              text: 'x${product.quantity}',
+              flex: 1,
+              align: PrintAlign.right,
+              style: const PrintTextStyle(bold: true),
+            ),
+          ]);
+          if (product.notes != null && product.notes!.trim().isNotEmpty) {
+            ticket.text('   >> [NOTE]: ${product.notes!.trim()}', style: const PrintTextStyle(bold: true));
+          }
+        }
+      }
+
+      ticket.separator();
+
+      if (transaction.description != null && transaction.description!.trim().isNotEmpty) {
+        ticket.text('NOTES SEMUA PESANAN:', style: const PrintTextStyle(bold: true));
+        ticket.text(transaction.description!.trim());
+        ticket.emptyLines();
+      }
+
       ticket.cut(linesBefore: 2);
 
       return await printTicket(ticket);

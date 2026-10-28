@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS '$orderedProductTableName' (
     'name' TEXT,
     'imageUrl' TEXT,
     'price' INTEGER,
+    'notes' TEXT,
     'createdAt' DATETIME DEFAULT CURRENT_TIMESTAMP,
     'updatedAt' DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY ('id'),

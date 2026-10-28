@@ -9,6 +9,7 @@ class OrderedProductEntity extends Equatable {
   final String name;
   final String imageUrl;
   final int price;
+  final String? notes;
   final String? createdAt;
   final String? updatedAt;
 
@@ -21,6 +22,7 @@ class OrderedProductEntity extends Equatable {
     required this.name,
     required this.imageUrl,
     required this.price,
+    this.notes,
     this.createdAt,
     this.updatedAt,
   });
@@ -34,6 +36,7 @@ class OrderedProductEntity extends Equatable {
     String? name,
     String? imageUrl,
     int? price,
+    String? notes,
     String? createdAt,
     String? updatedAt,
   }) {
@@ -46,6 +49,7 @@ class OrderedProductEntity extends Equatable {
       name: name ?? this.name,
       imageUrl: imageUrl ?? this.imageUrl,
       price: price ?? this.price,
+      notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -61,6 +65,7 @@ class OrderedProductEntity extends Equatable {
     name,
     imageUrl,
     price,
+    notes,
     createdAt,
     updatedAt,
   ];

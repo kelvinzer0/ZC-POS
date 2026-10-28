@@ -110,6 +110,17 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
   final _descriptionController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final state = ref.read(homeNotifierProvider);
+    if (state.receivedAmount > 0) {
+      _amountController.text = state.receivedAmount.toString();
+    }
+    _customerController.text = state.customerName ?? '';
+    _descriptionController.text = state.description ?? '';
+  }
+
+  @override
   void dispose() {
     _amountController.dispose();
     _customerController.dispose();
@@ -176,8 +187,8 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
         const SizedBox(height: AppSizes.padding),
         AppTextField(
           controller: _descriptionController,
-          labelText: 'Description (Optional)',
-          hintText: 'Description...',
+          labelText: 'Catatan Semua Pesanan / Order Notes (Optional)',
+          hintText: 'Misal: Meja 5 / Bungkus / Sambal dipisah...',
           onChanged: (v) => homeNotifier.onChangedDescription(v),
         ),
         const SizedBox(height: AppSizes.padding * 1.5),

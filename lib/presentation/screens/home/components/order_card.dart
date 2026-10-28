@@ -19,6 +19,8 @@ class OrderCard extends StatefulWidget {
   final VoidCallback? onTapRemove;
   final Function(int) onChangedQuantity;
   final Function(int)? onChangedPrice;
+  final String? notes;
+  final Function(String?)? onChangedNotes;
 
   const OrderCard({
     super.key,
@@ -31,6 +33,8 @@ class OrderCard extends StatefulWidget {
     this.onTapRemove,
     required this.onChangedQuantity,
     this.onChangedPrice,
+    this.notes,
+    this.onChangedNotes,
   });
 
   @override
@@ -81,6 +85,30 @@ class _OrderCardState extends State<OrderCard> {
           });
           widget.onChangedPrice?.call(parsed);
         }
+        context.pop();
+      },
+    );
+  }
+
+  void _showEditNotesDialog() {
+    final controller = TextEditingController(text: widget.notes ?? '');
+    AppDialog.show(
+      title: 'Catatan Item',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: AppTextField(
+          controller: controller,
+          labelText: 'Catatan (misal: Pedas, Tanpa Es, dll)',
+          hintText: 'Tulis catatan untuk item ini...',
+          autofocus: true,
+        ),
+      ),
+      rightButtonText: 'Simpan',
+      leftButtonText: 'Batal',
+      onTapLeftButton: (context) => context.pop(),
+      onTapRightButton: (context) {
+        final val = controller.text.trim();
+        widget.onChangedNotes?.call(val.isEmpty ? null : val);
         context.pop();
       },
     );
@@ -226,6 +254,53 @@ class _OrderCardState extends State<OrderCard> {
                             ],
                           ),
                         ),
+                        if (widget.onChangedNotes != null) ...[
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: _showEditNotesDialog,
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: (widget.notes != null && widget.notes!.trim().isNotEmpty)
+                                    ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4)
+                                    : Theme.of(context).colorScheme.surfaceContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.edit_note_rounded,
+                                    size: 15,
+                                    color: (widget.notes != null && widget.notes!.trim().isNotEmpty)
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      (widget.notes != null && widget.notes!.trim().isNotEmpty)
+                                          ? 'Note: ${widget.notes!.trim()}'
+                                          : '+ Catatan',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontSize: 11,
+                                        fontWeight: (widget.notes != null && widget.notes!.trim().isNotEmpty)
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: (widget.notes != null && widget.notes!.trim().isNotEmpty)
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],

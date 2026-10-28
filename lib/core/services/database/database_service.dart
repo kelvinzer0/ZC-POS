@@ -52,6 +52,11 @@ class DatabaseService {
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.productTableName}' ADD COLUMN category TEXT DEFAULT 'General'");
     } catch (_) {}
+
+    // Ensure notes column exists in OrderedProduct table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.orderedProductTableName}' ADD COLUMN notes TEXT");
+    } catch (_) {}
   }
 
   @visibleForTesting
@@ -70,6 +75,11 @@ class DatabaseService {
     // Ensure category column exists in Product table for existing databases
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.productTableName}' ADD COLUMN category TEXT DEFAULT 'General'");
+    } catch (_) {}
+
+    // Ensure notes column exists in OrderedProduct table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.orderedProductTableName}' ADD COLUMN notes TEXT");
     } catch (_) {}
   }
 

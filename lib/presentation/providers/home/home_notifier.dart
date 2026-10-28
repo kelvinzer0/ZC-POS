@@ -43,11 +43,6 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
       final transactionRepository = ref.read(transactionRepositoryProvider);
       var res = await CreateTransactionUsecase(transactionRepository).call(transaction);
 
-      if (res.isSuccess) {
-        // Auto print receipt (fire-and-forget, ignore failure)
-        ref.read(printerServiceProvider).printTransaction(transaction);
-      }
-
       // Refresh products
       ref.read(productsNotifierProvider.notifier).getAllProducts();
 
@@ -105,6 +100,13 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
     if (index < 0 || index >= state.orderedProducts.length) return;
     final orderedProducts = [...state.orderedProducts];
     orderedProducts[index] = orderedProducts[index].copyWith(price: newPrice);
+    state = state.copyWith(orderedProducts: orderedProducts);
+  }
+
+  void onChangedOrderedProductNotes(int index, String? notes) {
+    if (index < 0 || index >= state.orderedProducts.length) return;
+    final orderedProducts = [...state.orderedProducts];
+    orderedProducts[index] = orderedProducts[index].copyWith(notes: notes);
     state = state.copyWith(orderedProducts: orderedProducts);
   }
 

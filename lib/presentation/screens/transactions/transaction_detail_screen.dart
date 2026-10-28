@@ -19,25 +19,90 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   const TransactionDetailScreen({super.key, required this.id});
 
-  void _reprint(WidgetRef ref, TransactionEntity? transaction) async {
+  void _showPrintOptions(BuildContext context, WidgetRef ref, TransactionEntity? transaction) {
     final targetTransaction = transaction ?? ref.read(transactionDetailNotifierProvider);
     if (targetTransaction == null) {
       AppSnackBar.showError('Data transaksi belum siap');
       return;
     }
 
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radius * 1.5)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSizes.padding),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.padding),
+                  child: Row(
+                    children: [
+                      Icon(Icons.print_rounded, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Pilih Opsi Cetak',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Divider(),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    child: Icon(Icons.receipt_long, color: Theme.of(context).colorScheme.primary),
+                  ),
+                  title: const Text('Customer Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Struk belanja lengkap untuk pelanggan'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _print(ref, targetTransaction, isKitchen: false);
+                  },
+                ),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                    child: Icon(Icons.restaurant, color: Theme.of(context).colorScheme.secondary),
+                  ),
+                  title: const Text('Kitchen Ticket', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Tiket dapur ringkas (Trx ID, tgl, list pesanan & catatan)'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _print(ref, targetTransaction, isKitchen: true);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _print(WidgetRef ref, TransactionEntity transaction, {required bool isKitchen}) async {
     final printerService = ref.read(printerServiceProvider);
     if (printerService.selectedPrinter == null) {
       AppSnackBar.showError('Printer belum dipilih! Silakan sambungkan printer di menu Printer Settings.');
       return;
     }
 
-    final result = await printerService.printTransaction(targetTransaction);
+    final result = isKitchen
+        ? await printerService.printKitchenTicket(transaction)
+        : await printerService.printCustomerReceipt(transaction);
 
     if (result.isFailure) {
       AppSnackBar.showError(result.error.toString());
     } else {
-      AppSnackBar.show('Struk berhasil dicetak ulang');
+      AppSnackBar.show(isKitchen ? 'Kitchen Ticket berhasil dicetak' : 'Customer Receipt berhasil dicetak');
     }
   }
 
@@ -51,8 +116,8 @@ class TransactionDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.print_outlined),
-            tooltip: 'Reprint',
-            onPressed: () => _reprint(ref, watchedTransaction),
+            tooltip: 'Print Options',
+            onPressed: () => _showPrintOptions(context, ref, watchedTransaction),
           ),
         ],
       ),
@@ -77,7 +142,9 @@ class TransactionDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSizes.padding),
             child: Column(
               children: [
-                const _StatusSection(),
+                _StatusSection(
+                  onTapPrint: () => _showPrintOptions(context, ref, transaction),
+                ),
                 const SizedBox(height: AppSizes.padding * 2),
                 _TransactionDetail(transaction: transaction),
                 const SizedBox(height: AppSizes.padding),
@@ -93,7 +160,9 @@ class TransactionDetailScreen extends ConsumerWidget {
 }
 
 class _StatusSection extends StatelessWidget {
-  const _StatusSection();
+  final VoidCallback onTapPrint;
+
+  const _StatusSection({required this.onTapPrint});
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +179,16 @@ class _StatusSection extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppSizes.padding),
+        OutlinedButton.icon(
+          onPressed: onTapPrint,
+          icon: const Icon(Icons.print_outlined),
+          label: const Text('Cetak Struk / Ticket'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radius)),
           ),
         ),
       ],
@@ -209,14 +288,21 @@ class _TransactionDetail extends StatelessWidget {
           const SizedBox(height: AppSizes.padding),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Description',
+                'Notes / Catatan',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              Text(
-                transaction.description ?? '-',
-                style: Theme.of(context).textTheme.bodyMedium,
+              const SizedBox(width: AppSizes.padding),
+              Expanded(
+                child: Text(
+                  (transaction.description != null && transaction.description!.trim().isNotEmpty)
+                      ? transaction.description!.trim()
+                      : '-',
+                  textAlign: TextAlign.right,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
             ],
           ),
@@ -334,6 +420,23 @@ class _ProductItem extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        if (order.notes != null && order.notes!.trim().isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'Note: ${order.notes!.trim()}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: AppSizes.padding / 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

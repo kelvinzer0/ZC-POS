@@ -9,6 +9,7 @@ class OrderedProductModel {
   String name;
   String imageUrl;
   int price;
+  String? notes;
   String? createdAt;
   String? updatedAt;
 
@@ -21,6 +22,7 @@ class OrderedProductModel {
     required this.name,
     required this.imageUrl,
     required this.price,
+    this.notes,
     this.createdAt,
     this.updatedAt,
   });
@@ -35,6 +37,7 @@ class OrderedProductModel {
       name: json['name'],
       imageUrl: json['imageUrl'],
       price: json['price'],
+      notes: json['notes'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
     );
@@ -50,6 +53,7 @@ class OrderedProductModel {
       'name': name,
       'imageUrl': imageUrl,
       'price': price,
+      'notes': notes,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -65,6 +69,7 @@ class OrderedProductModel {
       name: entity.name,
       imageUrl: entity.imageUrl,
       price: entity.price,
+      notes: entity.notes,
       createdAt: entity.createdAt ?? DateTime.now().toIso8601String(),
       updatedAt: entity.updatedAt ?? DateTime.now().toIso8601String(),
     );
@@ -80,6 +85,7 @@ class OrderedProductModel {
       name: name,
       imageUrl: imageUrl,
       price: price,
+      notes: notes,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
