@@ -1,49 +1,34 @@
 {
   "project_info": {
-    "project_number": "406037321591",
-    "project_id": "flutter-pos-478ed",
-    "storage_bucket": "flutter-pos-478ed.appspot.com"
+    "project_number": "555155784059",
+    "project_id": "hobi-haus-web",
+    "storage_bucket": "hobi-haus-web.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:406037321591:android:dd6f394a021c2220a3b372",
+        "mobilesdk_app_id": "1:555155784059:android:89af0e1e1ce015ac9dbdde",
         "android_client_info": {
           "package_name": "com.zerolabsimpact.zcpos"
         }
       },
       "oauth_client": [
         {
-          "client_id": "406037321591-oo52bjfle9q7ubesvjhptj8i95d9g85a.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.zerolabsimpact.zcpos",
-            "certificate_hash": "896e5dee866c5c32e6f16cec445d600762349b58"
-          }
-        },
-        {
-          "client_id": "406037321591-bm3g2keghladt9q2fv1j9hh4c8udgi5i.apps.googleusercontent.com",
+          "client_id": "555155784059-92oof83j72eakst3g936u0aacs41k6n7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA67wagaW8U8yRKDMx5W5f2S0IPDTlVQSg"
+          "current_key": "AIzaSyBAL5ZgZ61CpO9BsgysPBKBkztvo7vSPlk"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "406037321591-bm3g2keghladt9q2fv1j9hh4c8udgi5i.apps.googleusercontent.com",
+              "client_id": "555155784059-92oof83j72eakst3g936u0aacs41k6n7.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "406037321591-dn3vfumdup2tff1vdddctf7lehkl62o5.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "elriztechnology.com.flutterPos"
-              }
             }
           ]
         }

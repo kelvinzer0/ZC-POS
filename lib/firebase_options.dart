@@ -4,6 +4,16 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+/// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// Example:
+/// ```dart
+/// import 'firebase_options.dart';
+/// // ...
+/// await Firebase.initializeApp(
+///   options: DefaultFirebaseOptions.currentPlatform,
+/// );
+/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -28,57 +38,54 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDummyWebKey1234567890',
-    appId: '1:1234567890:web:abcdef123456',
-    messagingSenderId: '1234567890',
-    projectId: 'zc-pos-default',
-    authDomain: 'zc-pos-default.firebaseapp.com',
-    storageBucket: 'zc-pos-default.appspot.com',
+    apiKey: 'AIzaSyAWnHNH3H75EH5xnYlJzCYwACVCl4DUUok',
+    appId: '1:555155784059:web:95e8063aa328e8089dbdde',
+    messagingSenderId: '555155784059',
+    projectId: 'hobi-haus-web',
+    authDomain: 'hobi-haus-web.firebaseapp.com',
+    storageBucket: 'hobi-haus-web.firebasestorage.app',
+    measurementId: 'G-HWZ1M1PPV1',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDummyAndroidKey1234567890',
-    appId: '1:1234567890:android:abcdef123456',
-    messagingSenderId: '1234567890',
-    projectId: 'zc-pos-default',
-    storageBucket: 'zc-pos-default.appspot.com',
+    apiKey: 'AIzaSyBAL5ZgZ61CpO9BsgysPBKBkztvo7vSPlk',
+    appId: '1:555155784059:android:89af0e1e1ce015ac9dbdde',
+    messagingSenderId: '555155784059',
+    projectId: 'hobi-haus-web',
+    storageBucket: 'hobi-haus-web.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDummyIosKey1234567890',
-    appId: '1:1234567890:ios:abcdef123456',
-    messagingSenderId: '1234567890',
-    projectId: 'zc-pos-default',
-    storageBucket: 'zc-pos-default.appspot.com',
-    iosClientId: '1234567890-abcdef.apps.googleusercontent.com',
-    iosBundleId: 'com.elrizwiraswara.flutterPos',
+    apiKey: 'AIzaSyAWnHNH3H75EH5xnYlJzCYwACVCl4DUUok',
+    appId: '1:555155784059:ios:95e8063aa328e8089dbdde',
+    messagingSenderId: '555155784059',
+    projectId: 'hobi-haus-web',
+    storageBucket: 'hobi-haus-web.firebasestorage.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDummyMacKey1234567890',
-    appId: '1:1234567890:ios:abcdef123456',
-    messagingSenderId: '1234567890',
-    projectId: 'zc-pos-default',
-    storageBucket: 'zc-pos-default.appspot.com',
-    iosClientId: '1234567890-abcdef.apps.googleusercontent.com',
-    iosBundleId: 'com.elrizwiraswara.flutterPos',
+    apiKey: 'AIzaSyAWnHNH3H75EH5xnYlJzCYwACVCl4DUUok',
+    appId: '1:555155784059:ios:95e8063aa328e8089dbdde',
+    messagingSenderId: '555155784059',
+    projectId: 'hobi-haus-web',
+    storageBucket: 'hobi-haus-web.firebasestorage.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDummyWinKey1234567890',
-    appId: '1:1234567890:web:abcdef123456',
-    messagingSenderId: '1234567890',
-    projectId: 'zc-pos-default',
-    authDomain: 'zc-pos-default.firebaseapp.com',
-    storageBucket: 'zc-pos-default.appspot.com',
+    apiKey: 'AIzaSyAWnHNH3H75EH5xnYlJzCYwACVCl4DUUok',
+    appId: '1:555155784059:web:95e8063aa328e8089dbdde',
+    messagingSenderId: '555155784059',
+    projectId: 'hobi-haus-web',
+    authDomain: 'hobi-haus-web.firebaseapp.com',
+    storageBucket: 'hobi-haus-web.firebasestorage.app',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
-    apiKey: 'AIzaSyDummyLinuxKey1234567890',
-    appId: '1:1234567890:web:abcdef123456',
-    messagingSenderId: '1234567890',
-    projectId: 'zc-pos-default',
-    authDomain: 'zc-pos-default.firebaseapp.com',
-    storageBucket: 'zc-pos-default.appspot.com',
+    apiKey: 'AIzaSyAWnHNH3H75EH5xnYlJzCYwACVCl4DUUok',
+    appId: '1:555155784059:web:95e8063aa328e8089dbdde',
+    messagingSenderId: '555155784059',
+    projectId: 'hobi-haus-web',
+    authDomain: 'hobi-haus-web.firebaseapp.com',
+    storageBucket: 'hobi-haus-web.firebasestorage.app',
   );
 }
