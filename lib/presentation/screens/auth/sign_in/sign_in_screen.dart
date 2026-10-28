@@ -52,7 +52,7 @@ class _WelcomeMessage extends StatelessWidget {
               ),
             ),
             Text(
-              'Welcome to Flutter POS app',
+              'Welcome to ZC-POS app',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),

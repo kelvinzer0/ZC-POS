@@ -16,12 +16,21 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
     final printerService = ref.watch(printerServiceProvider);
     return PrinterSettingsState(
       paperSize: printerService.paperSize,
+      receiptLogoPath: printerService.receiptLogoPath,
       selectedTypes: {
         PrinterConnectionType.usb,
         PrinterConnectionType.bluetooth,
         PrinterConnectionType.ble,
         PrinterConnectionType.network,
       },
+    );
+  }
+
+  Future<void> setReceiptLogoPath(String? path) async {
+    await ref.read(printerServiceProvider).setReceiptLogoPath(path);
+    state = state.copyWith(
+      receiptLogoPath: path,
+      clearReceiptLogo: path == null,
     );
   }
 

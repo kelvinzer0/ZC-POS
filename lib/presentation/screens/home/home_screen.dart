@@ -103,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _Body extends ConsumerWidget {
+class _Body extends ConsumerStatefulWidget {
   final ScrollController scrollController;
   final TextEditingController searchFieldController;
   final Future<void> Function() onRefresh;
@@ -115,9 +115,35 @@ class _Body extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends ConsumerState<_Body> {
+  String selectedCategory = 'Semua';
+
+  @override
+  Widget build(BuildContext context) {
     final allProducts = ref.watch(productsNotifierProvider.select((p) => p.allProducts));
     final isLoadingMore = ref.watch(productsNotifierProvider.select((p) => p.isLoadingMore));
+
+    final categories = ['Semua'];
+    if (allProducts != null) {
+      final cats = allProducts
+          .map((p) => p.category.trim().isEmpty ? 'General' : p.category.trim())
+          .toSet()
+          .toList()
+        ..sort();
+      categories.addAll(cats);
+    }
+
+    final displayedProducts = allProducts == null
+        ? null
+        : selectedCategory == 'Semua'
+            ? allProducts
+            : allProducts.where((p) {
+                final cat = p.category.trim().isEmpty ? 'General' : p.category.trim();
+                return cat.toLowerCase() == selectedCategory.toLowerCase();
+              }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -130,10 +156,10 @@ class _Body extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: onRefresh,
+        onRefresh: widget.onRefresh,
         child: Scrollbar(
           child: CustomScrollView(
-            controller: scrollController,
+            controller: widget.scrollController,
             // Disable scroll when data is null or empty
             physics: (allProducts?.isEmpty ?? true) ? const NeverScrollableScrollPhysics() : null,
             slivers: [
@@ -145,12 +171,24 @@ class _Body extends ConsumerWidget {
                 titleSpacing: 0,
                 title: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSizes.padding),
-                  child: _SearchField(controller: searchFieldController),
+                  child: _SearchField(controller: widget.searchFieldController),
                 ),
               ),
+              if (allProducts != null && allProducts.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: _CategoryPillTabs(
+                    categories: categories,
+                    selectedCategory: selectedCategory,
+                    onSelected: (cat) {
+                      setState(() {
+                        selectedCategory = cat;
+                      });
+                    },
+                  ),
+                ),
               SliverLayoutBuilder(
                 builder: (context, constraint) {
-                  if (allProducts == null) {
+                  if (displayedProducts == null) {
                     return const SliverFillRemaining(
                       hasScrollBody: false,
                       fillOverscroll: true,
@@ -161,14 +199,15 @@ class _Body extends ConsumerWidget {
                     );
                   }
 
-                  if (allProducts.isEmpty) {
+                  if (displayedProducts.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
                       fillOverscroll: true,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 140),
                         child: AppEmptyState(
-                          subtitle: 'No products available, add product to continue',
+                          title: 'No products in this category',
+                          subtitle: 'Try selecting another category or add product to continue',
                           buttonText: 'Add Product',
                           onTapButton: () => context.push('/products/product-create'),
                         ),
@@ -185,9 +224,9 @@ class _Body extends ConsumerWidget {
                         crossAxisSpacing: AppSizes.padding / 2,
                         mainAxisSpacing: AppSizes.padding / 2,
                       ),
-                      itemCount: allProducts.length,
+                      itemCount: displayedProducts.length,
                       itemBuilder: (context, i) {
-                        return _ProductCard(product: allProducts[i]);
+                        return _ProductCard(product: displayedProducts[i]);
                       },
                     ),
                   );
@@ -202,6 +241,68 @@ class _Body extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CategoryPillTabs extends StatelessWidget {
+  final List<String> categories;
+  final String selectedCategory;
+  final ValueChanged<String> onSelected;
+
+  const _CategoryPillTabs({
+    required this.categories,
+    required this.selectedCategory,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: AppSizes.padding),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final cat = categories[index];
+          final isSelected = cat.toLowerCase() == selectedCategory.toLowerCase();
+
+          return InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => onSelected(cat),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outlineVariant,
+                  width: 1,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  cat,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -374,6 +475,7 @@ class _ProductCard extends ConsumerWidget {
         final homeState = ref.read(homeNotifierProvider);
 
         int currentQty = homeState.orderedProducts.where((e) => e.productId == product.id).firstOrNull?.quantity ?? 0;
+        int currentPrice = product.price;
 
         AppDialog.show(
           title: 'Enter Amount',
@@ -386,6 +488,9 @@ class _ProductCard extends ConsumerWidget {
             onChangedQuantity: (val) {
               currentQty = val;
             },
+            onChangedPrice: (val) {
+              currentPrice = val;
+            },
           ),
           rightButtonText: 'Add To Cart',
           leftButtonText: 'Cancel',
@@ -393,7 +498,11 @@ class _ProductCard extends ConsumerWidget {
             context.pop();
           },
           onTapRightButton: (context) {
-            ref.read(homeNotifierProvider.notifier).onAddOrderedProduct(product, currentQty == 0 ? 1 : currentQty);
+            ref.read(homeNotifierProvider.notifier).onAddOrderedProduct(
+              product,
+              currentQty == 0 ? 1 : currentQty,
+              price: currentPrice,
+            );
             context.pop();
           },
         );

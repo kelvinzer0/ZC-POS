@@ -1,11 +1,13 @@
 import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/themes/app_sizes.dart';
 import '../../../../core/utilities/currency_formatter.dart';
 import '../../../widgets/app_button.dart';
 import '../../../widgets/app_dialog.dart';
+import '../../../widgets/app_text_field.dart';
 
 class OrderCard extends StatefulWidget {
   final String name;
@@ -16,6 +18,7 @@ class OrderCard extends StatefulWidget {
   final VoidCallback? onTapCard;
   final VoidCallback? onTapRemove;
   final Function(int) onChangedQuantity;
+  final Function(int)? onChangedPrice;
 
   const OrderCard({
     super.key,
@@ -27,6 +30,7 @@ class OrderCard extends StatefulWidget {
     this.onTapCard,
     this.onTapRemove,
     required this.onChangedQuantity,
+    this.onChangedPrice,
   });
 
   @override
@@ -35,17 +39,51 @@ class OrderCard extends StatefulWidget {
 
 class _OrderCardState extends State<OrderCard> {
   int quantity = 1;
+  late int currentPrice;
 
   @override
   void initState() {
     quantity = widget.initialQuantity == 0 ? 1 : widget.initialQuantity;
+    currentPrice = widget.price;
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant OrderCard oldWidget) {
     quantity = widget.initialQuantity == 0 ? 1 : widget.initialQuantity;
+    currentPrice = widget.price;
     super.didUpdateWidget(oldWidget);
+  }
+
+  void _showEditPriceDialog() {
+    final controller = TextEditingController(text: currentPrice.toString());
+    AppDialog.show(
+      title: 'Ubah Harga Satuan',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: AppTextField(
+          controller: controller,
+          labelText: 'Harga (Rp)',
+          hintText: 'Masukkan harga baru...',
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          autofocus: true,
+        ),
+      ),
+      rightButtonText: 'Simpan',
+      leftButtonText: 'Batal',
+      onTapLeftButton: (context) => context.pop(),
+      onTapRightButton: (context) {
+        final parsed = int.tryParse(controller.text);
+        if (parsed != null && parsed >= 0) {
+          setState(() {
+            currentPrice = parsed;
+          });
+          widget.onChangedPrice?.call(parsed);
+        }
+        context.pop();
+      },
+    );
   }
 
   @override
@@ -81,18 +119,39 @@ class _OrderCardState extends State<OrderCard> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              CurrencyFormatter.format(widget.price),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                        InkWell(
+                          onTap: widget.onChangedPrice != null ? _showEditPriceDialog : null,
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  CurrencyFormatter.format(currentPrice),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: widget.onChangedPrice != null
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '/pcs',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+                                ),
+                                if (widget.onChangedPrice != null) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 13,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ],
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '/pcs',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
-                            ),
-                          ],
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(

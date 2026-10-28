@@ -60,7 +60,25 @@ class ProductsCard extends StatelessWidget {
                     product.stock <= 0 ? _OutOfStock() : const SizedBox.shrink(),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
+                if (product.category.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      product.category,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontSize: 9,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
                 Text(
                   product.name,
                   maxLines: 2,

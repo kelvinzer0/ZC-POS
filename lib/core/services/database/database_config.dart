@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS '$productTableName' (
     'stock' INTEGER,
     'sold' INTEGER,
     'price' INTEGER,
+    'category' TEXT DEFAULT 'General',
     'description' TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,

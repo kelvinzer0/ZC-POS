@@ -61,9 +61,10 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
     state = state.copyWith(isPanelExpanded: val);
   }
 
-  void onAddOrderedProduct(ProductEntity product, int qty) {
+  void onAddOrderedProduct(ProductEntity product, int qty, {int? price}) {
+    final effectivePrice = price ?? product.price;
     final orderedProducts = [...state.orderedProducts];
-    var currentIndex = orderedProducts.indexWhere((e) => e.productId == product.id);
+    var currentIndex = orderedProducts.indexWhere((e) => e.productId == product.id && e.price == effectivePrice);
 
     if (currentIndex != -1) {
       orderedProducts[currentIndex] = orderedProducts[currentIndex].copyWith(quantity: qty);
@@ -75,7 +76,7 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
         stock: product.stock,
         name: product.name,
         imageUrl: product.imageUrl,
-        price: product.price,
+        price: effectivePrice,
       );
 
       orderedProducts.add(order);
@@ -97,6 +98,13 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
   void onChangedOrderedProductQuantity(int index, int value) {
     final orderedProducts = [...state.orderedProducts];
     orderedProducts[index] = orderedProducts[index].copyWith(quantity: value);
+    state = state.copyWith(orderedProducts: orderedProducts);
+  }
+
+  void onChangedOrderedProductPrice(int index, int newPrice) {
+    if (index < 0 || index >= state.orderedProducts.length) return;
+    final orderedProducts = [...state.orderedProducts];
+    orderedProducts[index] = orderedProducts[index].copyWith(price: newPrice);
     state = state.copyWith(orderedProducts: orderedProducts);
   }
 

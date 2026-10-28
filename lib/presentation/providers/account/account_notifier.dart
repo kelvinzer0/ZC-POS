@@ -8,6 +8,7 @@ import '../../../domain/entities/user_entity.dart' hide AuthProvider;
 import '../../../domain/usecases/storage_usecases.dart';
 import '../../../domain/usecases/user_usecases.dart';
 import '../auth/auth_notifier.dart';
+import '../main/main_notifier.dart';
 import 'account_state.dart';
 
 final accountNotifierProvider = NotifierProvider.autoDispose<AccountNotifier, AccountFormState>(
@@ -67,6 +68,11 @@ class AccountNotifier extends AutoDisposeNotifier<AccountFormState> {
       );
 
       var res = await UpateUserUsecase(userRepository).call(user);
+
+      if (res.isSuccess) {
+        ref.read(authNotifierProvider.notifier).updateUser(user);
+        ref.read(mainNotifierProvider.notifier).getAndSyncAllUserData();
+      }
 
       return res;
     } catch (e) {

@@ -6,6 +6,7 @@ class ProductFormState {
   final String? name;
   final int? price;
   final int? stock;
+  final String? category;
   final String? description;
   final bool isLoaded;
 
@@ -15,6 +16,7 @@ class ProductFormState {
     this.name,
     this.price,
     this.stock,
+    this.category,
     this.description,
     this.isLoaded = false,
   });
@@ -25,6 +27,7 @@ class ProductFormState {
     String? name,
     int? price,
     int? stock,
+    String? category,
     String? description,
     bool? isLoaded,
   }) {
@@ -34,6 +37,7 @@ class ProductFormState {
       name: name ?? this.name,
       price: price ?? this.price,
       stock: stock ?? this.stock,
+      category: category ?? this.category,
       description: description ?? this.description,
       isLoaded: isLoaded ?? this.isLoaded,
     );

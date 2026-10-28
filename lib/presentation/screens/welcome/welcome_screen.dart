@@ -36,7 +36,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Welcome to Flutter POS app',
+            'Welcome to ZC-POS app',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyLarge,
           ),

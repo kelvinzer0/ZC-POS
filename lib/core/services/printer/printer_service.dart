@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:image/image.dart' as img;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unified_esc_pos_printer/unified_esc_pos_printer.dart';
@@ -40,6 +42,16 @@ class PrinterService {
       PaperSize.mm80 => 'mm80',
     };
     _sharedPreferences.setString(Constants.selectedPaperSizeKey, key);
+  }
+
+  String? get receiptLogoPath => _sharedPreferences.getString(Constants.receiptLogoPathKey);
+
+  Future<void> setReceiptLogoPath(String? path) async {
+    if (path == null) {
+      await _sharedPreferences.remove(Constants.receiptLogoPathKey);
+    } else {
+      await _sharedPreferences.setString(Constants.receiptLogoPathKey, path);
+    }
   }
 
   Future<Result<void>> scanPrinters({
@@ -186,8 +198,29 @@ class PrinterService {
     try {
       final ticket = await Ticket.create(paperSize);
 
+      // Print custom receipt logo if configured
+      final logoPath = receiptLogoPath;
+      if (logoPath != null && logoPath.isNotEmpty) {
+        final logoFile = File(logoPath);
+        if (logoFile.existsSync()) {
+          try {
+            final bytes = logoFile.readAsBytesSync();
+            var decoded = img.decodeImage(bytes);
+            if (decoded != null) {
+              if (decoded.width > 384) {
+                decoded = img.copyResize(decoded, width: 384);
+              }
+              ticket.imageRaster(decoded, align: PrintAlign.center);
+              ticket.emptyLines(1);
+            }
+          } catch (e) {
+            cl('Failed to print receipt logo: $e');
+          }
+        }
+      }
+
       ticket.text(
-        'FLUTTER POS',
+        'ZC-POS',
         align: PrintAlign.center,
         style: const PrintTextStyle(
           bold: true,
@@ -196,7 +229,7 @@ class PrinterService {
         ),
       );
       ticket.text(
-        'https://github.com/elrizwiraswara/flutter_pos',
+        'https://github.com/kelvinzer0/ZC-POS',
         align: PrintAlign.center,
         style: PrintTextStyle(
           fontType: FontType.fontB,
@@ -337,10 +370,30 @@ class PrinterService {
         ),
       ]);
 
-      ticket.emptyLines(3);
+      ticket.emptyLines(1);
+
+      final logoPath = receiptLogoPath;
+      if (logoPath != null && logoPath.isNotEmpty) {
+        final logoFile = File(logoPath);
+        if (logoFile.existsSync()) {
+          try {
+            final bytes = logoFile.readAsBytesSync();
+            var decoded = img.decodeImage(bytes);
+            if (decoded != null) {
+              if (decoded.width > 384) {
+                decoded = img.copyResize(decoded, width: 384);
+              }
+              ticket.imageRaster(decoded, align: PrintAlign.center);
+              ticket.emptyLines(1);
+            }
+          } catch (e) {
+            cl('Failed to test print receipt logo: $e');
+          }
+        }
+      }
 
       ticket.text(
-        'FLUTTER POS PRINT TEST OK',
+        'ZC-POS PRINT TEST OK',
         align: PrintAlign.center,
         style: const PrintTextStyle(bold: true),
       );

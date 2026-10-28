@@ -22,6 +22,7 @@ class ProductsScreen extends ConsumerStatefulWidget {
 class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   final scrollController = ScrollController();
   final searchFieldController = TextEditingController();
+  String selectedCategory = 'Semua';
 
   @override
   void initState() {
@@ -59,6 +60,25 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
     final allProducts = ref.watch(productsNotifierProvider.select((s) => s.allProducts));
     final isLoadingMore = ref.watch(productsNotifierProvider.select((s) => s.isLoadingMore));
 
+    final categories = ['Semua'];
+    if (allProducts != null) {
+      final cats = allProducts
+          .map((p) => p.category.trim().isEmpty ? 'General' : p.category.trim())
+          .toSet()
+          .toList()
+        ..sort();
+      categories.addAll(cats);
+    }
+
+    final displayedProducts = allProducts == null
+        ? null
+        : selectedCategory == 'Semua'
+            ? allProducts
+            : allProducts.where((p) {
+                final cat = p.category.trim().isEmpty ? 'General' : p.category.trim();
+                return cat.toLowerCase() == selectedCategory.toLowerCase();
+              }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
@@ -86,9 +106,62 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                   child: _SearchField(controller: searchFieldController),
                 ),
               ),
+              if (allProducts != null && allProducts.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: 40,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.padding),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: categories.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final cat = categories[index];
+                        final isSelected = cat.toLowerCase() == selectedCategory.toLowerCase();
+
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () {
+                            setState(() {
+                              selectedCategory = cat;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.outlineVariant,
+                                width: 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                cat,
+                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               SliverLayoutBuilder(
                 builder: (context, _) {
-                  if (allProducts == null) {
+                  if (displayedProducts == null) {
                     return const SliverFillRemaining(
                       hasScrollBody: false,
                       fillOverscroll: true,
@@ -96,7 +169,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                     );
                   }
 
-                  if (allProducts.isEmpty) {
+                  if (displayedProducts.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
                       fillOverscroll: true,
@@ -117,9 +190,9 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                         crossAxisSpacing: AppSizes.padding / 2,
                         mainAxisSpacing: AppSizes.padding / 2,
                       ),
-                      itemCount: allProducts.length,
+                      itemCount: displayedProducts.length,
                       itemBuilder: (context, i) {
-                        return _ProductCard(product: allProducts[i]);
+                        return _ProductCard(product: displayedProducts[i]);
                       },
                     ),
                   );

@@ -7,6 +7,7 @@ class PrinterSettingsState {
   final List<PrinterDevice> printers;
   final PaperSize paperSize;
   final Set<PrinterConnectionType> selectedTypes;
+  final String? receiptLogoPath;
 
   const PrinterSettingsState({
     this.isScanning = false,
@@ -15,6 +16,7 @@ class PrinterSettingsState {
     this.printers = const [],
     required this.paperSize,
     required this.selectedTypes,
+    this.receiptLogoPath,
   });
 
   PrinterSettingsState copyWith({
@@ -24,6 +26,8 @@ class PrinterSettingsState {
     List<PrinterDevice>? printers,
     PaperSize? paperSize,
     Set<PrinterConnectionType>? selectedTypes,
+    String? receiptLogoPath,
+    bool clearReceiptLogo = false,
   }) {
     return PrinterSettingsState(
       isScanning: isScanning ?? this.isScanning,
@@ -32,6 +36,7 @@ class PrinterSettingsState {
       printers: printers ?? this.printers,
       paperSize: paperSize ?? this.paperSize,
       selectedTypes: selectedTypes ?? this.selectedTypes,
+      receiptLogoPath: clearReceiptLogo ? null : (receiptLogoPath ?? this.receiptLogoPath),
     );
   }
 }

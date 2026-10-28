@@ -45,6 +45,7 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
         name: product?.name,
         price: product?.price,
         stock: product?.stock,
+        category: product?.category ?? 'General',
         description: product?.description,
         isLoaded: true,
       );
@@ -74,6 +75,7 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
         imageUrl: imageUrl ?? '',
         stock: state.stock ?? 0,
         price: state.price ?? 0,
+        category: (state.category == null || state.category!.trim().isEmpty) ? 'General' : state.category!.trim(),
         description: state.description ?? '',
       );
 
@@ -110,6 +112,7 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
         imageUrl: imageUrl ?? '',
         stock: state.stock ?? 0,
         price: state.price ?? 0,
+        category: (state.category == null || state.category!.trim().isEmpty) ? 'General' : state.category!.trim(),
         description: state.description ?? '',
       );
 
@@ -156,5 +159,9 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
 
   void onChangedDesc(String value) {
     state = state.copyWith(description: value);
+  }
+
+  void onChangedCategory(String value) {
+    state = state.copyWith(category: value);
   }
 }

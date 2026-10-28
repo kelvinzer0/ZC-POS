@@ -47,6 +47,11 @@ class DatabaseService {
       database.execute(DatabaseConfig.createOrderedProductTable),
       database.execute(DatabaseConfig.createQueuedActionTable),
     ]);
+
+    // Ensure category column exists in Product table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.productTableName}' ADD COLUMN category TEXT DEFAULT 'General'");
+    } catch (_) {}
   }
 
   @visibleForTesting
@@ -61,6 +66,11 @@ class DatabaseService {
       database.execute(DatabaseConfig.createOrderedProductTable),
       database.execute(DatabaseConfig.createQueuedActionTable),
     ]);
+
+    // Ensure category column exists in Product table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.productTableName}' ADD COLUMN category TEXT DEFAULT 'General'");
+    } catch (_) {}
   }
 
   Future<void> dropDatabase(String path) async {

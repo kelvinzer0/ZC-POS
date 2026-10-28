@@ -19,19 +19,32 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   const TransactionDetailScreen({super.key, required this.id});
 
-  void _reprint(WidgetRef ref) async {
-    final transaction = ref.read(transactionDetailNotifierProvider);
-    if (transaction == null) return;
+  void _reprint(WidgetRef ref, TransactionEntity? transaction) async {
+    final targetTransaction = transaction ?? ref.read(transactionDetailNotifierProvider);
+    if (targetTransaction == null) {
+      AppSnackBar.showError('Data transaksi belum siap');
+      return;
+    }
 
-    final result = await ref.read(printerServiceProvider).printTransaction(transaction);
+    final printerService = ref.read(printerServiceProvider);
+    if (printerService.selectedPrinter == null) {
+      AppSnackBar.showError('Printer belum dipilih! Silakan sambungkan printer di menu Printer Settings.');
+      return;
+    }
+
+    final result = await printerService.printTransaction(targetTransaction);
 
     if (result.isFailure) {
       AppSnackBar.showError(result.error.toString());
+    } else {
+      AppSnackBar.show('Struk berhasil dicetak ulang');
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final watchedTransaction = ref.watch(transactionDetailNotifierProvider);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -39,26 +52,26 @@ class TransactionDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.print_outlined),
             tooltip: 'Reprint',
-            onPressed: () => _reprint(ref),
+            onPressed: () => _reprint(ref, watchedTransaction),
           ),
         ],
       ),
       body: FutureBuilder(
         future: ref.read(transactionDetailNotifierProvider.notifier).getTransactionDetail(id),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && watchedTransaction == null) {
             return const AppProgressIndicator();
           }
 
-          if (snapshot.hasError) {
+          if (snapshot.hasError && watchedTransaction == null) {
             throw snapshot.error.toString();
           }
 
-          if (snapshot.data == null) {
+          final transaction = watchedTransaction ?? snapshot.data;
+
+          if (transaction == null) {
             return const AppEmptyState(title: 'Not Found');
           }
-
-          final transaction = snapshot.data!;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(AppSizes.padding),

@@ -54,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
               const SizedBox(height: AppSizes.padding),
               Text(
-                'Flutter POS',
+                'ZC-POS',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(

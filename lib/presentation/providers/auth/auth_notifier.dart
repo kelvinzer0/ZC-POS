@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/di/app_providers.dart';
 import '../../../core/common/result.dart';
 import '../../../core/utilities/console_logger.dart';
+import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/auth_usecases.dart';
 import '../../../domain/usecases/params/no_param.dart';
 import '../../../domain/usecases/user_usecases.dart';
@@ -24,13 +25,27 @@ class AuthNotifier extends Notifier<AuthState> {
       final authRepository = ref.read(authRepositoryProvider);
       final res = await GetCurrentUserUsecase(authRepository).call(NoParam());
 
-      final user = res.data;
+      var user = res.data;
+      if (user != null) {
+        try {
+          final userRepository = ref.read(userRepositoryProvider);
+          final userDbRes = await GetUserUsecase(userRepository).call(user.id);
+          if (userDbRes.isSuccess && userDbRes.data != null) {
+            user = userDbRes.data;
+          }
+        } catch (_) {}
+      }
+
       cl('isAuthenticated: ${user != null}');
 
       state = AuthState(user: user);
     } catch (_) {
       state = const AuthState();
     }
+  }
+
+  void updateUser(UserEntity user) {
+    state = AuthState(user: user);
   }
 
   Future<Result<String>> signIn() async {

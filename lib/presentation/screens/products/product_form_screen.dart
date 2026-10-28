@@ -33,6 +33,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final nameController = TextEditingController();
   final priceController = TextEditingController();
   final stockController = TextEditingController();
+  final categoryController = TextEditingController();
   final descController = TextEditingController();
 
   @override
@@ -45,6 +46,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       nameController.text = state.name ?? '';
       priceController.text = state.price?.toString() ?? '';
       stockController.text = state.stock?.toString() ?? '';
+      categoryController.text = state.category ?? 'General';
       descController.text = state.description ?? '';
     });
   }
@@ -54,6 +56,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     nameController.dispose();
     priceController.dispose();
     stockController.dispose();
+    categoryController.dispose();
     descController.dispose();
     super.dispose();
   }
@@ -153,6 +156,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   _StockField(
                     controller: stockController,
                     onChanged: notifier.onChangedStock,
+                  ),
+                  _CategoryField(
+                    controller: categoryController,
+                    onChanged: notifier.onChangedCategory,
                   ),
                   _DescriptionField(
                     controller: descController,
@@ -301,6 +308,56 @@ class _StockField extends StatelessWidget {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+class _CategoryField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  static const List<String> suggestions = ['Makanan', 'Minuman', 'Snack', 'Paket', 'General'];
+
+  const _CategoryField({
+    required this.controller,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSizes.padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppTextField(
+            controller: controller,
+            labelText: 'Kategori Produk',
+            hintText: 'Contoh: Makanan, Minuman...',
+            onChanged: onChanged,
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: suggestions.map((cat) {
+              return ActionChip(
+                label: Text(
+                  cat,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 11),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  controller.text = cat;
+                  onChanged(cat);
+                },
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

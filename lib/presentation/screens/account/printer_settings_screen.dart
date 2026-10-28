@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:unified_esc_pos_printer/unified_esc_pos_printer.dart';
 
 import '../../../app/di/app_providers.dart';
@@ -49,6 +53,8 @@ class _PrinterSettingsBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
           _SettingsRow(),
+          SizedBox(height: AppSizes.padding),
+          _ReceiptLogoSection(),
           SizedBox(height: AppSizes.padding * 1.5),
           _DevicesHeader(),
           SizedBox(height: AppSizes.padding),
@@ -56,6 +62,132 @@ class _PrinterSettingsBody extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ReceiptLogoSection extends ConsumerWidget {
+  const _ReceiptLogoSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final logoPath = ref.watch(printerSettingsNotifierProvider.select((p) => p.receiptLogoPath));
+    final file = logoPath != null ? File(logoPath) : null;
+    final exists = file != null && file.existsSync();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.padding),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppSizes.radius),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.receipt_long, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Logo Struk (Thermal Receipt)',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Logo gambar hitam-putih / monokrom untuk dicetak di bagian atas struk.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+          ),
+          const SizedBox(height: AppSizes.padding),
+          if (exists)
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.file(
+                    file,
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: AppSizes.padding),
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      AppButton(
+                        height: 36,
+                        text: 'Ganti Logo',
+                        fontSize: 12,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        buttonColor: Theme.of(context).colorScheme.surfaceContainer,
+                        onTap: () => _pickAndSetLogo(context, ref),
+                      ),
+                      AppButton(
+                        height: 36,
+                        text: 'Hapus Logo',
+                        fontSize: 12,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        buttonColor: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+                        textColor: Theme.of(context).colorScheme.error,
+                        onTap: () async {
+                          await ref.read(printerSettingsNotifierProvider.notifier).setReceiptLogoPath(null);
+                          AppSnackBar.show('Logo struk berhasil dihapus');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          else
+            AppButton(
+              height: 40,
+              buttonColor: Theme.of(context).colorScheme.surfaceContainer,
+              onTap: () => _pickAndSetLogo(context, ref),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_photo_alternate_outlined,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Pilih Gambar Logo Struk',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndSetLogo(BuildContext context, WidgetRef ref) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (picked == null) return;
+
+      final appDir = await getApplicationDocumentsDirectory();
+      final savedPath = '${appDir.path}/receipt_logo_${DateTime.now().millisecondsSinceEpoch}.png';
+      await File(picked.path).copy(savedPath);
+
+      await ref.read(printerSettingsNotifierProvider.notifier).setReceiptLogoPath(savedPath);
+      AppSnackBar.show('Logo struk berhasil disimpan');
+    } catch (e) {
+      AppSnackBar.showError('Gagal memilih logo: $e');
+    }
   }
 }
 
