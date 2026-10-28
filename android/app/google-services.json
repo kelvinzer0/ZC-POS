@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "555155784059-dkn1rle1a8ekle8vr7m83p6pjqi0rehb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zerolabsimpact.zcpos",
+            "certificate_hash": "bdbc33bf66fc22396a24fa888231d2d70d3cbda1"
+          }
+        },
+        {
+          "client_id": "555155784059-mfr5sgd15j3tgsuuvnpdlo2s0gqlspa3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zerolabsimpact.zcpos",
+            "certificate_hash": "f1cb01d39b56a711d3c4519d53a771e89b4abd7a"
+          }
+        },
+        {
           "client_id": "555155784059-92oof83j72eakst3g936u0aacs41k6n7.apps.googleusercontent.com",
           "client_type": 3
         }

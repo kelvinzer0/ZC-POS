@@ -26,17 +26,18 @@ class AuthRemoteDataSourceImpl implements AuthDataSource {
         serverClientId: Constants.googleServerClientId,
       );
 
-      final googleSignInAccount = await googleSignIn.attemptLightweightAuthentication();
+      GoogleSignInAccount? googleSignInAccount = await googleSignIn.attemptLightweightAuthentication();
+      googleSignInAccount ??= await googleSignIn.authenticate();
 
-      final googleSignInAuthentication = googleSignInAccount?.authentication;
+      final googleSignInAuthentication = googleSignInAccount.authentication;
 
-      final googleSignInAuthorization = await googleSignInAccount?.authorizationClient.authorizationForScopes(
+      final googleSignInAuthorization = await googleSignInAccount.authorizationClient.authorizationForScopes(
         Constants.authScopes,
       );
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleSignInAuthorization?.accessToken,
-        idToken: googleSignInAuthentication?.idToken,
+        idToken: googleSignInAuthentication.idToken,
       );
 
       final userCredential = await firebaseAuth.signInWithCredential(credential);

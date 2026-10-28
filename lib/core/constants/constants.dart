@@ -2,7 +2,10 @@ class Constants {
   // Prevents instantiation and extension
   Constants._();
 
-  static const googleServerClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+  static const googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: '555155784059-92oof83j72eakst3g936u0aacs41k6n7.apps.googleusercontent.com',
+  );
 
   static const String selectedDeviceIdKey = 'selected_device_id';
   static const String selectedConnectionTypeKey = 'selected_connection_type';
