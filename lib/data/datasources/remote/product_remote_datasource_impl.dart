@@ -91,6 +91,7 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
             .get();
       }
       var products = res.docs.map((e) => ProductModel.fromJson(e.data())).toList();
+      products.sort((a, b) => (b.createdAt ?? '').compareTo(a.createdAt ?? ''));
       return Result.success(data: products);
     } catch (e) {
       return Result.failure(error: e);
@@ -108,57 +109,42 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
   }) async {
     try {
       final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      final collectionRef = _firebaseFirestore.collection('Product');
+      QuerySnapshot<Map<String, dynamic>> rawProducts;
 
-      var query = (storeCode != null && storeCode.isNotEmpty)
-          ? _firebaseFirestore.collection('Product').where('storeCode', isEqualTo: storeCode)
-          : _firebaseFirestore.collection('Product').where('createdById', isEqualTo: userId);
+      if (storeCode != null && storeCode.isNotEmpty) {
+        rawProducts = await collectionRef.where('storeCode', isEqualTo: storeCode).get();
+        if (rawProducts.docs.isEmpty) {
+          rawProducts = await collectionRef.where('createdById', isEqualTo: userId).get();
+        }
+      } else {
+        rawProducts = await collectionRef.where('createdById', isEqualTo: userId).get();
+      }
 
-      query = query.orderBy(orderBy, descending: sortBy == 'DESC');
+      var products = rawProducts.docs.map((e) => ProductModel.fromJson(e.data())).toList();
+
+      // Sort in-memory to prevent FAILED_PRECONDITION (requiring composite indexes)
+      products.sort((a, b) {
+        final aVal = a.createdAt ?? '';
+        final bVal = b.createdAt ?? '';
+        return sortBy == 'DESC' ? bVal.compareTo(aVal) : aVal.compareTo(bVal);
+      });
 
       if (contains != null && contains.trim().isNotEmpty) {
         final queryText = contains.trim().toLowerCase();
-        final rawProducts = await query.get();
-        var products = rawProducts.docs
-            .map((e) => ProductModel.fromJson(e.data()))
-            .where((p) {
-              return p.name.toLowerCase().contains(queryText) ||
-                  p.category.toLowerCase().contains(queryText) ||
-                  '${p.id}'.contains(queryText);
-            })
-            .toList();
-
-        if (offset != null && offset > 0) {
-          products = products.skip(offset).toList();
-        }
-        if (products.length > limit) {
-          products = products.take(limit).toList();
-        }
-        return Result.success(data: products);
+        products = products.where((p) {
+          return p.name.toLowerCase().contains(queryText) ||
+              p.category.toLowerCase().contains(queryText) ||
+              '${p.id}'.contains(queryText);
+        }).toList();
       }
 
-      query = query.limit(limit);
-
-      if (offset != null) {
-        DocumentSnapshot<Object?>? lastSnapshot;
-
-        var temp = await ((storeCode != null && storeCode.isNotEmpty)
-                ? _firebaseFirestore.collection('Product').where('storeCode', isEqualTo: storeCode)
-                : _firebaseFirestore.collection('Product').where('createdById', isEqualTo: userId))
-            .orderBy(orderBy, descending: sortBy == 'DESC')
-            .limit(offset)
-            .get();
-
-        lastSnapshot = temp.docs.lastOrNull;
-
-        if (lastSnapshot != null) {
-          query = query.startAfterDocument(lastSnapshot);
-        } else {
-          return Result.success(data: []);
-        }
+      if (offset != null && offset > 0) {
+        products = products.skip(offset).toList();
       }
-
-      var rawProducts = await query.get();
-      var products = rawProducts.docs.map((e) => ProductModel.fromJson(e.data())).toList();
+      if (products.length > limit) {
+        products = products.take(limit).toList();
+      }
 
       return Result.success(data: products);
     } catch (e) {
