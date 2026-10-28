@@ -11,6 +11,7 @@ import '../../../domain/entities/product_entity.dart';
 import '../../providers/account/printer_settings_notifier.dart';
 import '../../providers/home/home_notifier.dart';
 import '../../providers/main/main_notifier.dart';
+import '../../providers/milestone/milestone_notifier.dart';
 import '../../providers/products/products_notifier.dart';
 import '../../providers/store/store_notifier.dart';
 import '../../widgets/app_button.dart';
@@ -20,6 +21,8 @@ import '../../widgets/app_loading_more_indicator.dart';
 import '../../widgets/app_progress_indicator.dart';
 import '../../widgets/app_snack_bar.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/milestone_banner.dart';
+import '../../widgets/milestone_bottom_sheet.dart';
 import '../products/components/products_card.dart';
 import 'components/cart_panel_body.dart';
 import 'components/cart_panel_footer.dart';
@@ -174,6 +177,7 @@ class _BodyState extends ConsumerState<_Body> {
         elevation: 0,
         shadowColor: Colors.transparent,
         actions: const [
+          _MilestoneBellButton(),
           _SyncButton(),
           _NetworkInfo(),
         ],
@@ -196,6 +200,15 @@ class _BodyState extends ConsumerState<_Body> {
                   padding: const EdgeInsets.symmetric(horizontal: AppSizes.padding),
                   child: _SearchField(controller: widget.searchFieldController),
                 ),
+              ),
+              Consumer(
+                builder: (context, ref, _) {
+                  final activeBanner = ref.watch(milestoneNotifierProvider.select((s) => s.activeBanner));
+                  if (activeBanner == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  return SliverToBoxAdapter(
+                    child: MilestoneBanner(notification: activeBanner),
+                  );
+                },
               ),
               if (allProducts != null && allProducts.isNotEmpty)
                 SliverToBoxAdapter(
@@ -567,6 +580,27 @@ class _ProductCard extends ConsumerWidget {
             context.pop();
           },
         );
+      },
+    );
+  }
+}
+
+class _MilestoneBellButton extends ConsumerWidget {
+  const _MilestoneBellButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(milestoneNotifierProvider.select((s) => s.unreadCount));
+
+    return IconButton(
+      tooltip: 'Penyemangat & Milestone Toko',
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 9 ? '9+' : '$unread'),
+        child: const Icon(Icons.workspace_premium_outlined),
+      ),
+      onPressed: () {
+        MilestoneBottomSheet.show(context);
       },
     );
   }

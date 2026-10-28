@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import '../../../../app/di/app_providers.dart';
+import '../../../../core/services/contacts/customer_contacts_service.dart';
 import '../../../../core/themes/app_sizes.dart';
 import '../../../../core/utilities/currency_formatter.dart';
+import '../../../providers/contacts/customer_contacts_provider.dart';
 import '../../../providers/home/home_notifier.dart';
 import '../../../widgets/app_button.dart';
 import '../../../widgets/app_dialog.dart';
@@ -109,6 +111,7 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
   final _shippingFeeController = TextEditingController();
   final _customerController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _customerFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -145,6 +148,7 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
     _shippingFeeController.dispose();
     _customerController.dispose();
     _descriptionController.dispose();
+    _customerFocusNode.dispose();
     super.dispose();
   }
 
@@ -315,11 +319,119 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
           onChanged: (v) => homeNotifier.onChangedChannel(v),
         ),
         const SizedBox(height: AppSizes.padding),
-        AppTextField(
-          controller: _customerController,
-          labelText: 'Customer Name (Optional)',
-          hintText: 'e.g. Jhone Doe',
-          onChanged: (v) => homeNotifier.onChangedCustomerName(v),
+        RawAutocomplete<CustomerContact>(
+          textEditingController: _customerController,
+          focusNode: _customerFocusNode,
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            final query = textEditingValue.text.trim().toLowerCase();
+            final contactsAsync = ref.read(customerContactsProvider);
+            final contacts = contactsAsync.value ?? [];
+            if (query.isEmpty) {
+              return contacts.take(4);
+            }
+            return contacts.where((c) {
+              final matchName = c.name.toLowerCase().contains(query);
+              final matchPhone = c.phone?.contains(query) ?? false;
+              return matchName || matchPhone;
+            }).take(6);
+          },
+          displayStringForOption: (CustomerContact option) => option.name,
+          onSelected: (CustomerContact selection) {
+            _customerController.text = selection.name;
+            homeNotifier.onChangedCustomerName(selection.name);
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: 220,
+                    maxWidth: MediaQuery.of(context).size.width - 64,
+                  ),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (BuildContext context, int index) {
+                      final CustomerContact option = options.elementAt(index);
+                      return ListTile(
+                        dense: true,
+                        leading: Icon(
+                          option.isFromDevice
+                              ? Icons.contact_phone_outlined
+                              : Icons.history_rounded,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        title: Text(
+                          option.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        ),
+                        subtitle: option.phone != null
+                            ? Text(
+                                option.phone!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                              )
+                            : null,
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: option.isFromDevice
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(context).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            option.isFromDevice ? 'Buku Kontak' : 'Pelanggan Lama',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: option.isFromDevice
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                  : Theme.of(context).colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                        ),
+                        onTap: () => onSelected(option),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+            final contactsAsync = ref.watch(customerContactsProvider);
+            return AppTextField(
+              controller: controller,
+              labelText: 'Customer Name (Auto Suggest dari Kontak)',
+              hintText: 'Ketik nama customer / pilih kontak...',
+              prefixWidget: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Icon(Icons.person_outline, size: 20),
+              ),
+              suffixWidget: IconButton(
+                icon: const Icon(Icons.contacts_outlined, size: 20),
+                tooltip: 'Pilih dari Kontak',
+                onPressed: () {
+                  _pickFromContactsModal(
+                    context,
+                    contactsAsync.value ?? [],
+                    homeNotifier,
+                  );
+                },
+              ),
+              onChanged: (v) => homeNotifier.onChangedCustomerName(v),
+            );
+          },
         ),
         const SizedBox(height: AppSizes.padding),
         AppTextField(
@@ -362,6 +474,127 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
           ],
         ),
       ],
+    );
+  }
+
+  void _pickFromContactsModal(
+    BuildContext context,
+    List<CustomerContact> contacts,
+    HomeNotifier homeNotifier,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        String searchQuery = '';
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filtered = contacts.where((c) {
+              if (searchQuery.isEmpty) return true;
+              return c.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                  (c.phone?.contains(searchQuery) ?? false);
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.contacts_rounded),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Pilih Kontak Customer',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: 'Cari nama atau nomor HP...',
+                            prefixIcon: const Icon(Icons.search),
+                            filled: true,
+                            fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          ),
+                          onChanged: (val) {
+                            setModalState(() {
+                              searchQuery = val;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Tidak ada kontak ditemukan',
+                              style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: filtered.length,
+                            separatorBuilder: (_, _) => const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final item = filtered[index];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  radius: 16,
+                                  child: Text(
+                                    item.name.isNotEmpty ? item.name[0].toUpperCase() : '?',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                subtitle: item.phone != null ? Text(item.phone!) : null,
+                                trailing: Text(
+                                  item.isFromDevice ? 'Buku Kontak' : 'Riwayat Trx',
+                                  style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.outline),
+                                ),
+                                onTap: () {
+                                  _customerController.text = item.name;
+                                  homeNotifier.onChangedCustomerName(item.name);
+                                  Navigator.pop(ctx);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

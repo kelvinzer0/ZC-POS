@@ -73,6 +73,7 @@ dependencies:
   unified_esc_pos_printer: ^3.0.0
   pdf: ^3.13.1
   open_filex: ^5.0.0
+  flutter_contacts: ^2.6.0
 
 dev_dependencies:
   flutter_test:

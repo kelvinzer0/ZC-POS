@@ -7,7 +7,9 @@ import '../../../domain/entities/product_entity.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../../../domain/usecases/transaction_usecases.dart';
 import '../auth/auth_notifier.dart';
+import '../milestone/milestone_notifier.dart';
 import '../products/products_notifier.dart';
+import '../transactions/transactions_notifier.dart';
 import 'home_state.dart';
 
 final homeNotifierProvider = NotifierProvider.autoDispose<HomeNotifier, HomeState>(
@@ -45,8 +47,10 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
       final transactionRepository = ref.read(transactionRepositoryProvider);
       var res = await CreateTransactionUsecase(transactionRepository).call(transaction);
 
-      // Refresh products
+      // Refresh products & transactions and evaluate milestones
       ref.read(productsNotifierProvider.notifier).getAllProducts();
+      ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
+      ref.read(milestoneNotifierProvider.notifier).checkMilestones();
 
       return res;
     } catch (e) {
