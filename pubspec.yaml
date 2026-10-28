@@ -70,6 +70,8 @@ dependencies:
   shared_preferences: ^2.3.5
   permission_handler: ^12.0.1
   unified_esc_pos_printer: ^3.0.0
+  pdf: ^3.13.1
+  open_filex: ^5.0.0
 
 dev_dependencies:
   flutter_test:

@@ -113,8 +113,22 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
   void initState() {
     super.initState();
     final state = ref.read(homeNotifierProvider);
-    if (state.receivedAmount > 0) {
-      _amountController.text = state.receivedAmount.toString();
+    final homeNotifier = ref.read(homeNotifierProvider.notifier);
+    final totalAmount = homeNotifier.getTotalAmount();
+
+    // Default fill receivedAmount with total pesanan, which user can edit freely
+    final initialAmount = state.receivedAmount > 0 ? state.receivedAmount : totalAmount;
+    if (initialAmount > 0) {
+      _amountController.text = initialAmount.toString();
+      _amountController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _amountController.text.length,
+      );
+      if (state.receivedAmount <= 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          homeNotifier.onChangedReceivedAmount(totalAmount);
+        });
+      }
     }
     _customerController.text = state.customerName ?? '';
     _descriptionController.text = state.description ?? '';
@@ -137,6 +151,7 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
     });
 
     if (res.isSuccess) {
+      homeNotifier.onRemoveAllOrderedProduct();
       router.go('/transactions/transaction-detail/${res.data}');
     } else {
       AppDialog.showError(error: res.error?.toString());
@@ -157,6 +172,19 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
           controller: _amountController,
           labelText: 'Received Amount',
           hintText: 'Received amount...',
+          suffixWidget: IconButton(
+            icon: const Icon(Icons.refresh_rounded, size: 20),
+            tooltip: 'Isi Total Pesanan (Uang Pas)',
+            onPressed: () {
+              final total = homeNotifier.getTotalAmount();
+              _amountController.text = total.toString();
+              _amountController.selection = TextSelection(
+                baseOffset: 0,
+                extentOffset: _amountController.text.length,
+              );
+              homeNotifier.onChangedReceivedAmount(total);
+            },
+          ),
           onChanged: (val) {
             homeNotifier.onChangedReceivedAmount(int.tryParse(val) ?? 0);
           },
