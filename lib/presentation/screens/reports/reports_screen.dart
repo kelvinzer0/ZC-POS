@@ -493,8 +493,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Laporan Penjualan'),
-        titleSpacing: 0,
+        title: const Text('Laporan Hasil Penjualan'),
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range_rounded),

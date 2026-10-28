@@ -1,11 +1,12 @@
 import 'package:flutter_pos/data/models/ordered_product_model.dart';
 import 'package:flutter_pos/data/models/transaction_model.dart';
-import 'package:flutter_pos/domain/entities/ordered_product_entity.dart';
 import 'package:flutter_pos/domain/entities/product_entity.dart';
 import 'package:flutter_pos/domain/entities/transaction_entity.dart';
+import 'package:flutter_pos/presentation/providers/account/printer_settings_state.dart';
 import 'package:flutter_pos/presentation/providers/home/home_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:unified_esc_pos_printer/unified_esc_pos_printer.dart';
 
 void main() {
   group('Shipping Fee & Printing Logic Tests', () {
@@ -111,6 +112,22 @@ void main() {
       notifier.onChangedShippingFee(0);
       expect(container.read(homeNotifierProvider).shippingFee, 0);
       expect(notifier.getTotalAmount(), 50000);
+    });
+
+    test('PrinterSettingsState supports hideReceiptHeaderTitle and hideReceiptHeaderSubtitle', () {
+      const state = PrinterSettingsState(
+        paperSize: PaperSize.mm58,
+        selectedTypes: {},
+      );
+      expect(state.hideReceiptHeaderTitle, false);
+      expect(state.hideReceiptHeaderSubtitle, false);
+
+      final updated = state.copyWith(
+        hideReceiptHeaderTitle: true,
+        hideReceiptHeaderSubtitle: true,
+      );
+      expect(updated.hideReceiptHeaderTitle, true);
+      expect(updated.hideReceiptHeaderSubtitle, true);
     });
   });
 }

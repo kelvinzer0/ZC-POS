@@ -47,11 +47,15 @@ class StoreService {
       final paperSize = _printerService.paperSize.value;
       final headerTitle = _printerService.receiptHeaderTitle;
       final headerSubtitle = _printerService.receiptHeaderSubtitle;
+      final hideHeaderTitle = _printerService.hideReceiptHeaderTitle;
+      final hideHeaderSubtitle = _printerService.hideReceiptHeaderSubtitle;
 
       await docRef.set({
         'storeCode': code,
         'headerTitle': headerTitle,
         'headerSubtitle': headerSubtitle,
+        'hideHeaderTitle': hideHeaderTitle,
+        'hideHeaderSubtitle': hideHeaderSubtitle,
         'paperSize': paperSize,
         if (accentColor != null) 'accentColor': accentColor,
         if (brightness != null) 'brightness': brightness,
@@ -76,6 +80,12 @@ class StoreService {
       }
       if (data['headerSubtitle'] is String) {
         await _printerService.setReceiptHeaderSubtitle(data['headerSubtitle']);
+      }
+      if (data['hideHeaderTitle'] is bool) {
+        await _printerService.setHideReceiptHeaderTitle(data['hideHeaderTitle']);
+      }
+      if (data['hideHeaderSubtitle'] is bool) {
+        await _printerService.setHideReceiptHeaderSubtitle(data['hideHeaderSubtitle']);
       }
       if (data['accentColor'] is int) {
         await _prefs.setInt(Constants.selectedAccentColorKey, data['accentColor']);

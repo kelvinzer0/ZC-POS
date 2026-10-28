@@ -77,6 +77,20 @@ class PrinterService {
     }
   }
 
+  bool get hideReceiptHeaderTitle =>
+      _sharedPreferences.getBool(Constants.hideReceiptHeaderTitleKey) ?? false;
+
+  Future<void> setHideReceiptHeaderTitle(bool value) async {
+    await _sharedPreferences.setBool(Constants.hideReceiptHeaderTitleKey, value);
+  }
+
+  bool get hideReceiptHeaderSubtitle =>
+      _sharedPreferences.getBool(Constants.hideReceiptHeaderSubtitleKey) ?? false;
+
+  Future<void> setHideReceiptHeaderSubtitle(bool value) async {
+    await _sharedPreferences.setBool(Constants.hideReceiptHeaderSubtitleKey, value);
+  }
+
   Future<Result<void>> scanPrinters({
     Set<PrinterConnectionType> types = const {
       PrinterConnectionType.usb,
@@ -242,7 +256,7 @@ class PrinterService {
         }
       }
 
-      if (receiptHeaderTitle.trim().isNotEmpty) {
+      if (!hideReceiptHeaderTitle && receiptHeaderTitle.trim().isNotEmpty) {
         ticket.text(
           receiptHeaderTitle.trim(),
           align: PrintAlign.center,
@@ -253,7 +267,7 @@ class PrinterService {
           ),
         );
       }
-      if (receiptHeaderSubtitle.trim().isNotEmpty) {
+      if (!hideReceiptHeaderSubtitle && receiptHeaderSubtitle.trim().isNotEmpty) {
         ticket.text(
           receiptHeaderSubtitle.trim(),
           align: PrintAlign.center,
@@ -263,7 +277,10 @@ class PrinterService {
         );
       }
 
-      ticket.emptyLines();
+      if ((!hideReceiptHeaderTitle && receiptHeaderTitle.trim().isNotEmpty) ||
+          (!hideReceiptHeaderSubtitle && receiptHeaderSubtitle.trim().isNotEmpty)) {
+        ticket.emptyLines();
+      }
 
       final date = DateTimeFormatter.slashDateShortedYearWithClock(
         transaction.createdAt ?? DateTime.now().toIso8601String(),

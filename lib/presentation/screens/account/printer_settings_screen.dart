@@ -97,6 +97,20 @@ class _ReceiptHeaderSectionState extends ConsumerState<_ReceiptHeaderSection> {
 
   @override
   Widget build(BuildContext context) {
+    final hideTitle = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptHeaderTitle));
+    final hideSubtitle = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptHeaderSubtitle));
+
+    ref.listen(printerSettingsNotifierProvider.select((s) => s.receiptHeaderTitle), (_, next) {
+      if (_titleController.text != next) {
+        _titleController.text = next;
+      }
+    });
+    ref.listen(printerSettingsNotifierProvider.select((s) => s.receiptHeaderSubtitle), (_, next) {
+      if (_subtitleController.text != next) {
+        _subtitleController.text = next;
+      }
+    });
+
     return Container(
       padding: const EdgeInsets.all(AppSizes.padding),
       decoration: BoxDecoration(
@@ -133,6 +147,41 @@ class _ReceiptHeaderSectionState extends ConsumerState<_ReceiptHeaderSection> {
               ref.read(printerSettingsNotifierProvider.notifier).setReceiptHeaderTitle(v);
             },
           ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () {
+              ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptHeaderTitle(!hideTitle);
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: Checkbox(
+                      value: hideTitle,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      onChanged: (val) {
+                        if (val != null) {
+                          ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptHeaderTitle(val);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sembunyikan Nama Usaha di Struk',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: hideTitle ? FontWeight.w600 : FontWeight.normal,
+                          color: hideTitle ? Theme.of(context).colorScheme.error : null,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: AppSizes.padding / 1.5),
           AppTextField(
             controller: _subtitleController,
@@ -141,6 +190,41 @@ class _ReceiptHeaderSectionState extends ConsumerState<_ReceiptHeaderSection> {
             onChanged: (v) {
               ref.read(printerSettingsNotifierProvider.notifier).setReceiptHeaderSubtitle(v);
             },
+          ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () {
+              ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptHeaderSubtitle(!hideSubtitle);
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: Checkbox(
+                      value: hideSubtitle,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      onChanged: (val) {
+                        if (val != null) {
+                          ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptHeaderSubtitle(val);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sembunyikan Sub-judul di Struk',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: hideSubtitle ? FontWeight.w600 : FontWeight.normal,
+                          color: hideSubtitle ? Theme.of(context).colorScheme.error : null,
+                        ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

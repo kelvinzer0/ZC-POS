@@ -34,6 +34,8 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
       receiptLogoPath: printerService.receiptLogoPath,
       receiptHeaderTitle: printerService.receiptHeaderTitle,
       receiptHeaderSubtitle: printerService.receiptHeaderSubtitle,
+      hideReceiptHeaderTitle: printerService.hideReceiptHeaderTitle,
+      hideReceiptHeaderSubtitle: printerService.hideReceiptHeaderSubtitle,
       selectedTypes: {
         PrinterConnectionType.usb,
         PrinterConnectionType.bluetooth,
@@ -41,6 +43,18 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
         PrinterConnectionType.network,
       },
     );
+  }
+
+  Future<void> toggleHideReceiptHeaderTitle(bool hide) async {
+    await ref.read(printerServiceProvider).setHideReceiptHeaderTitle(hide);
+    state = state.copyWith(hideReceiptHeaderTitle: hide);
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> toggleHideReceiptHeaderSubtitle(bool hide) async {
+    await ref.read(printerServiceProvider).setHideReceiptHeaderSubtitle(hide);
+    state = state.copyWith(hideReceiptHeaderSubtitle: hide);
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 
   Future<void> setReceiptLogoPath(String? path) async {

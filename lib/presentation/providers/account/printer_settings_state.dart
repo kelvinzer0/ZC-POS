@@ -10,6 +10,8 @@ class PrinterSettingsState {
   final String? receiptLogoPath;
   final String receiptHeaderTitle;
   final String receiptHeaderSubtitle;
+  final bool hideReceiptHeaderTitle;
+  final bool hideReceiptHeaderSubtitle;
 
   const PrinterSettingsState({
     this.isScanning = false,
@@ -21,6 +23,8 @@ class PrinterSettingsState {
     this.receiptLogoPath,
     this.receiptHeaderTitle = 'ZC-POS',
     this.receiptHeaderSubtitle = 'https://github.com/kelvinzer0/ZC-POS',
+    this.hideReceiptHeaderTitle = false,
+    this.hideReceiptHeaderSubtitle = false,
   });
 
   PrinterSettingsState copyWith({
@@ -34,6 +38,8 @@ class PrinterSettingsState {
     bool clearReceiptLogo = false,
     String? receiptHeaderTitle,
     String? receiptHeaderSubtitle,
+    bool? hideReceiptHeaderTitle,
+    bool? hideReceiptHeaderSubtitle,
   }) {
     return PrinterSettingsState(
       isScanning: isScanning ?? this.isScanning,
@@ -45,6 +51,8 @@ class PrinterSettingsState {
       receiptLogoPath: clearReceiptLogo ? null : (receiptLogoPath ?? this.receiptLogoPath),
       receiptHeaderTitle: receiptHeaderTitle ?? this.receiptHeaderTitle,
       receiptHeaderSubtitle: receiptHeaderSubtitle ?? this.receiptHeaderSubtitle,
+      hideReceiptHeaderTitle: hideReceiptHeaderTitle ?? this.hideReceiptHeaderTitle,
+      hideReceiptHeaderSubtitle: hideReceiptHeaderSubtitle ?? this.hideReceiptHeaderSubtitle,
     );
   }
 }
