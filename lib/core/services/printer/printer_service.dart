@@ -336,6 +336,20 @@ class PrinterService {
 
       ticket.separator();
 
+      if (transaction.shippingFee > 0) {
+        ticket.row([
+          PrintColumn(
+            text: 'Ongkir',
+            flex: 2,
+          ),
+          PrintColumn(
+            text: CurrencyFormatter.format(transaction.shippingFee),
+            flex: 1,
+            align: PrintAlign.right,
+          ),
+        ]);
+      }
+
       ticket.row([
         PrintColumn(
           text: 'Total',

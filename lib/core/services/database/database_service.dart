@@ -62,6 +62,11 @@ class DatabaseService {
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN channel TEXT DEFAULT 'offline'");
     } catch (_) {}
+
+    // Ensure shippingFee column exists in Transaction table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN shippingFee INTEGER DEFAULT 0");
+    } catch (_) {}
   }
 
   @visibleForTesting
@@ -90,6 +95,11 @@ class DatabaseService {
     // Ensure channel column exists in Transaction table for existing databases
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN channel TEXT DEFAULT 'offline'");
+    } catch (_) {}
+
+    // Ensure shippingFee column exists in Transaction table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN shippingFee INTEGER DEFAULT 0");
     } catch (_) {}
   }
 

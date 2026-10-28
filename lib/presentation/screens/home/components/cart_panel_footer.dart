@@ -106,6 +106,7 @@ class _AdditionalInfoDialog extends ConsumerStatefulWidget {
 
 class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
   final _amountController = TextEditingController();
+  final _shippingFeeController = TextEditingController();
   final _customerController = TextEditingController();
   final _descriptionController = TextEditingController();
 
@@ -115,6 +116,10 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
     final state = ref.read(homeNotifierProvider);
     final homeNotifier = ref.read(homeNotifierProvider.notifier);
     final totalAmount = homeNotifier.getTotalAmount();
+
+    if (state.shippingFee > 0) {
+      _shippingFeeController.text = state.shippingFee.toString();
+    }
 
     // Default fill receivedAmount with total pesanan, which user can edit freely
     final initialAmount = state.receivedAmount > 0 ? state.receivedAmount : totalAmount;
@@ -137,6 +142,7 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
   @override
   void dispose() {
     _amountController.dispose();
+    _shippingFeeController.dispose();
     _customerController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -166,6 +172,21 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        AppTextField(
+          controller: _shippingFeeController,
+          keyboardType: TextInputType.number,
+          labelText: 'Biaya Ongkir (Optional)',
+          hintText: 'Biaya pengiriman / ongkir...',
+          prefixWidget: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Icon(Icons.local_shipping_outlined, size: 20),
+          ),
+          onChanged: (val) {
+            final fee = int.tryParse(val) ?? 0;
+            homeNotifier.onChangedShippingFee(fee >= 0 ? fee : 0);
+          },
+        ),
+        const SizedBox(height: AppSizes.padding),
         AppTextField(
           autofocus: true,
           keyboardType: TextInputType.number,

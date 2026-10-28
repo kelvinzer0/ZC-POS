@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS '$transactionTableName' (
     'customerName' TEXT,
     'description' TEXT,
     'createdById' TEXT,
+    'shippingFee' INTEGER DEFAULT 0,
     'receivedAmount' INTEGER,
     'returnAmount' INTEGER,
     'totalAmount' INTEGER,

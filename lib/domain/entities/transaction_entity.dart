@@ -12,6 +12,7 @@ class TransactionEntity extends Equatable {
   final String createdById;
   final UserEntity? createdBy;
   final List<OrderedProductEntity>? orderedProducts;
+  final int shippingFee;
   final int receivedAmount;
   final int returnAmount;
   final int totalAmount;
@@ -28,6 +29,7 @@ class TransactionEntity extends Equatable {
     required this.createdById,
     this.createdBy,
     this.orderedProducts,
+    this.shippingFee = 0,
     required this.receivedAmount,
     required this.returnAmount,
     required this.totalAmount,
@@ -45,6 +47,7 @@ class TransactionEntity extends Equatable {
     String? createdById,
     UserEntity? createdBy,
     List<OrderedProductEntity>? orderdProducts,
+    int? shippingFee,
     int? receivedAmount,
     int? returnAmount,
     int? totalAmount,
@@ -61,6 +64,7 @@ class TransactionEntity extends Equatable {
       createdById: createdById ?? this.createdById,
       createdBy: createdBy ?? this.createdBy,
       orderedProducts: orderdProducts ?? orderedProducts,
+      shippingFee: shippingFee ?? this.shippingFee,
       receivedAmount: receivedAmount ?? this.receivedAmount,
       returnAmount: returnAmount ?? this.returnAmount,
       totalAmount: totalAmount ?? this.totalAmount,
@@ -80,6 +84,7 @@ class TransactionEntity extends Equatable {
     createdById,
     createdBy,
     orderedProducts,
+    shippingFee,
     receivedAmount,
     returnAmount,
     totalAmount,

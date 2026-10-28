@@ -35,6 +35,7 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
         orderedProducts: state.orderedProducts,
         createdById: user.id,
         createdBy: user,
+        shippingFee: state.shippingFee,
         receivedAmount: state.receivedAmount,
         returnAmount: state.receivedAmount - getTotalAmount(),
         totalOrderedProduct: state.orderedProducts.length,
@@ -131,8 +132,17 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
     state = state.copyWith(description: value);
   }
 
-  int getTotalAmount() {
+  void onChangedShippingFee(int fee) {
+    state = state.copyWith(shippingFee: fee >= 0 ? fee : 0);
+  }
+
+  int getSubtotalAmount() {
     if (state.orderedProducts.isEmpty) return 0;
     return state.orderedProducts.map((e) => e.price * e.quantity).reduce((a, b) => a + b);
+  }
+
+  int getTotalAmount() {
+    if (state.orderedProducts.isEmpty) return 0;
+    return getSubtotalAmount() + state.shippingFee;
   }
 }

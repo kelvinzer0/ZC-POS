@@ -402,6 +402,22 @@ class _PaymentDetail extends StatelessWidget {
             );
           }),
           const Divider(height: AppSizes.padding * 2),
+          if (transaction.shippingFee > 0) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Ongkir',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  CurrencyFormatter.format(transaction.shippingFee),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSizes.padding),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

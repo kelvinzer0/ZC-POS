@@ -2,6 +2,7 @@ import '../../../domain/entities/ordered_product_entity.dart';
 
 class HomeState {
   final List<OrderedProductEntity> orderedProducts;
+  final int shippingFee;
   final int receivedAmount;
   final String selectedPaymentMethod;
   final String selectedChannel;
@@ -11,6 +12,7 @@ class HomeState {
 
   const HomeState({
     this.orderedProducts = const [],
+    this.shippingFee = 0,
     this.receivedAmount = 0,
     this.selectedPaymentMethod = 'cash',
     this.selectedChannel = 'offline',
@@ -21,6 +23,7 @@ class HomeState {
 
   HomeState copyWith({
     List<OrderedProductEntity>? orderedProducts,
+    int? shippingFee,
     int? receivedAmount,
     String? selectedPaymentMethod,
     String? selectedChannel,
@@ -30,6 +33,7 @@ class HomeState {
   }) {
     return HomeState(
       orderedProducts: orderedProducts ?? this.orderedProducts,
+      shippingFee: shippingFee ?? this.shippingFee,
       receivedAmount: receivedAmount ?? this.receivedAmount,
       selectedPaymentMethod: selectedPaymentMethod ?? this.selectedPaymentMethod,
       selectedChannel: selectedChannel ?? this.selectedChannel,

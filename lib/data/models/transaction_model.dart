@@ -11,6 +11,7 @@ class TransactionModel {
   String createdById;
   UserModel? createdBy;
   List<OrderedProductModel>? orderedProducts;
+  int shippingFee;
   int receivedAmount;
   int returnAmount;
   int totalAmount;
@@ -27,6 +28,7 @@ class TransactionModel {
     required this.createdById,
     this.createdBy,
     this.orderedProducts,
+    this.shippingFee = 0,
     required this.receivedAmount,
     required this.returnAmount,
     required this.totalAmount,
@@ -47,6 +49,7 @@ class TransactionModel {
       orderedProducts: json['orderedProducts'] != null
           ? (json['orderedProducts'] as List).map((e) => OrderedProductModel.fromJson(e)).toList()
           : null,
+      shippingFee: json['shippingFee'] ?? 0,
       receivedAmount: json['receivedAmount'],
       returnAmount: json['returnAmount'],
       totalAmount: json['totalAmount'],
@@ -66,6 +69,7 @@ class TransactionModel {
       'createdById': createdById,
       'createdBy': createdBy,
       'orderedProducts': orderedProducts?.map((e) => e.toJson()).toList(),
+      'shippingFee': shippingFee,
       'receivedAmount': receivedAmount,
       'returnAmount': returnAmount,
       'totalAmount': totalAmount,
@@ -85,6 +89,7 @@ class TransactionModel {
       createdById: entity.createdById,
       createdBy: entity.createdBy != null ? UserModel.fromEntity(entity.createdBy!) : null,
       orderedProducts: entity.orderedProducts?.map((e) => OrderedProductModel.fromEntity(e)).toList(),
+      shippingFee: entity.shippingFee,
       receivedAmount: entity.receivedAmount,
       returnAmount: entity.returnAmount,
       totalAmount: entity.totalAmount,
@@ -104,6 +109,7 @@ class TransactionModel {
       createdBy: createdBy?.toEntity(),
       createdById: createdById,
       orderedProducts: orderedProducts?.map((e) => e.toEntity()).toList(),
+      shippingFee: shippingFee,
       receivedAmount: receivedAmount,
       returnAmount: returnAmount,
       totalAmount: totalAmount,
