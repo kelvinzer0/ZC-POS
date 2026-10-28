@@ -40,6 +40,8 @@ migrate_working_dir/
 *.json
 !config.example.json
 !google-services.json
+!firebase.json
+!firestore.indexes.json
 # lib/firebase_options.dart
 .env
 

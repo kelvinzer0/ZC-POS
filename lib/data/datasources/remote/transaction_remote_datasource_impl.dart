@@ -248,8 +248,13 @@ class TransactionRemoteDatasourceImpl extends TransactionDatasource {
     try {
       var query = _firebaseFirestore
           .collection('Transaction')
-          .where('createdById', isEqualTo: userId)
-          .where('id', arrayContains: contains)
+          .where('createdById', isEqualTo: userId);
+
+      if (contains != null && contains.isNotEmpty) {
+        query = query.where('id', arrayContains: contains);
+      }
+
+      query = query
           .orderBy(orderBy, descending: sortBy == 'DESC')
           .limit(limit);
 

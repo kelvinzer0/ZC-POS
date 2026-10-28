@@ -82,8 +82,13 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
 
       var query = _firebaseFirestore
           .collection('Product')
-          .where('createdById', isEqualTo: userId)
-          .where('name', arrayContains: contains)
+          .where('createdById', isEqualTo: userId);
+
+      if (contains != null && contains.isNotEmpty) {
+        query = query.where('name', arrayContains: contains);
+      }
+
+      query = query
           .orderBy(orderBy, descending: sortBy == 'DESC')
           .limit(limit);
 
