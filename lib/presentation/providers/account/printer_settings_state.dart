@@ -8,6 +8,8 @@ class PrinterSettingsState {
   final PaperSize paperSize;
   final Set<PrinterConnectionType> selectedTypes;
   final String? receiptLogoPath;
+  final String receiptHeaderTitle;
+  final String receiptHeaderSubtitle;
 
   const PrinterSettingsState({
     this.isScanning = false,
@@ -17,6 +19,8 @@ class PrinterSettingsState {
     required this.paperSize,
     required this.selectedTypes,
     this.receiptLogoPath,
+    this.receiptHeaderTitle = 'ZC-POS',
+    this.receiptHeaderSubtitle = 'https://github.com/kelvinzer0/ZC-POS',
   });
 
   PrinterSettingsState copyWith({
@@ -28,6 +32,8 @@ class PrinterSettingsState {
     Set<PrinterConnectionType>? selectedTypes,
     String? receiptLogoPath,
     bool clearReceiptLogo = false,
+    String? receiptHeaderTitle,
+    String? receiptHeaderSubtitle,
   }) {
     return PrinterSettingsState(
       isScanning: isScanning ?? this.isScanning,
@@ -37,6 +43,8 @@ class PrinterSettingsState {
       paperSize: paperSize ?? this.paperSize,
       selectedTypes: selectedTypes ?? this.selectedTypes,
       receiptLogoPath: clearReceiptLogo ? null : (receiptLogoPath ?? this.receiptLogoPath),
+      receiptHeaderTitle: receiptHeaderTitle ?? this.receiptHeaderTitle,
+      receiptHeaderSubtitle: receiptHeaderSubtitle ?? this.receiptHeaderSubtitle,
     );
   }
 }

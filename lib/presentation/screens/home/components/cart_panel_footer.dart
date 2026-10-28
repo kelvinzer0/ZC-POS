@@ -178,6 +178,94 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
           onChanged: (v) => homeNotifier.onChangedPaymentMethod(v),
         ),
         const SizedBox(height: AppSizes.padding),
+        AppDropDown(
+          labelText: 'Channel Transaksi',
+          selectedValue: homeState.selectedChannel,
+          dropdownItems: const [
+            DropdownMenuItem(
+              value: 'offline',
+              child: Row(
+                children: [
+                  Icon(Icons.storefront_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Offline / Toko'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'market',
+              child: Row(
+                children: [
+                  Icon(Icons.shopping_bag_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Marketplace'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'wa',
+              child: Row(
+                children: [
+                  Icon(Icons.chat_outlined, size: 18, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text('WhatsApp'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'instagram',
+              child: Row(
+                children: [
+                  Icon(Icons.camera_alt_outlined, size: 18, color: Colors.purple),
+                  SizedBox(width: 8),
+                  Text('Instagram'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'telegram',
+              child: Row(
+                children: [
+                  Icon(Icons.send_rounded, size: 18, color: Colors.lightBlue),
+                  SizedBox(width: 8),
+                  Text('Telegram'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'facebook',
+              child: Row(
+                children: [
+                  Icon(Icons.facebook, size: 18, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text('Facebook'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'tiktok',
+              child: Row(
+                children: [
+                  Icon(Icons.music_note_rounded, size: 18),
+                  SizedBox(width: 8),
+                  Text('TikTok'),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'lainnya',
+              child: Row(
+                children: [
+                  Icon(Icons.more_horiz_rounded, size: 18),
+                  SizedBox(width: 8),
+                  Text('Lainnya'),
+                ],
+              ),
+            ),
+          ],
+          onChanged: (v) => homeNotifier.onChangedChannel(v),
+        ),
+        const SizedBox(height: AppSizes.padding),
         AppTextField(
           controller: _customerController,
           labelText: 'Customer Name (Optional)',

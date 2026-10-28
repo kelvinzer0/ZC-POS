@@ -248,6 +248,29 @@ class _TransactionDetail extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
+                'Channel Transaksi',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _getChannelIcon(transaction.channel),
+                  const SizedBox(width: 6),
+                  Text(
+                    _getChannelLabel(transaction.channel),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.padding),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
                 'Created By',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
@@ -309,6 +332,32 @@ class _TransactionDetail extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Icon _getChannelIcon(String channel) {
+    return switch (channel.toLowerCase()) {
+      'wa' => const Icon(Icons.chat_outlined, size: 16, color: Colors.green),
+      'market' => const Icon(Icons.shopping_bag_outlined, size: 16),
+      'instagram' => const Icon(Icons.camera_alt_outlined, size: 16, color: Colors.purple),
+      'telegram' => const Icon(Icons.send_rounded, size: 16, color: Colors.lightBlue),
+      'facebook' => const Icon(Icons.facebook, size: 16, color: Colors.blue),
+      'tiktok' => const Icon(Icons.music_note_rounded, size: 16),
+      'lainnya' => const Icon(Icons.more_horiz_rounded, size: 16),
+      _ => const Icon(Icons.storefront_outlined, size: 16),
+    };
+  }
+
+  String _getChannelLabel(String channel) {
+    return switch (channel.toLowerCase()) {
+      'wa' => 'WhatsApp',
+      'market' => 'Marketplace',
+      'instagram' => 'Instagram',
+      'telegram' => 'Telegram',
+      'facebook' => 'Facebook',
+      'tiktok' => 'TikTok',
+      'lainnya' => 'Lainnya',
+      _ => 'Offline / Toko',
+    };
   }
 }
 

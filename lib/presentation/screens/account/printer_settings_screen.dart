@@ -13,6 +13,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/app_drop_down.dart';
 import '../../widgets/app_icon_button.dart';
 import '../../widgets/app_snack_bar.dart';
+import '../../widgets/app_text_field.dart';
 
 class PrinterSettingsScreen extends ConsumerStatefulWidget {
   const PrinterSettingsScreen({super.key});
@@ -54,11 +55,93 @@ class _PrinterSettingsBody extends StatelessWidget {
         children: const [
           _SettingsRow(),
           SizedBox(height: AppSizes.padding),
+          _ReceiptHeaderSection(),
+          SizedBox(height: AppSizes.padding),
           _ReceiptLogoSection(),
           SizedBox(height: AppSizes.padding * 1.5),
           _DevicesHeader(),
           SizedBox(height: AppSizes.padding),
           _PrinterList(),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptHeaderSection extends ConsumerStatefulWidget {
+  const _ReceiptHeaderSection();
+
+  @override
+  ConsumerState<_ReceiptHeaderSection> createState() => _ReceiptHeaderSectionState();
+}
+
+class _ReceiptHeaderSectionState extends ConsumerState<_ReceiptHeaderSection> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _subtitleController;
+
+  @override
+  void initState() {
+    super.initState();
+    final headerTitle = ref.read(printerSettingsNotifierProvider).receiptHeaderTitle;
+    final headerSubtitle = ref.read(printerSettingsNotifierProvider).receiptHeaderSubtitle;
+    _titleController = TextEditingController(text: headerTitle);
+    _subtitleController = TextEditingController(text: headerSubtitle);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _subtitleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.padding),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppSizes.radius),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.title, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Header & Identitas Struk',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Sesuaikan nama toko/usaha dan informasi sub-judul (link/kontak) di bagian atas struk.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+          ),
+          const SizedBox(height: AppSizes.padding),
+          AppTextField(
+            controller: _titleController,
+            labelText: 'Nama Usaha / Judul Struk',
+            hintText: 'Contoh: Warung Lakku POS (default: ZC-POS)',
+            onChanged: (v) {
+              ref.read(printerSettingsNotifierProvider.notifier).setReceiptHeaderTitle(v);
+            },
+          ),
+          const SizedBox(height: AppSizes.padding / 1.5),
+          AppTextField(
+            controller: _subtitleController,
+            labelText: 'Sub-judul / Tagline / Info Kontak',
+            hintText: 'Contoh: Jl. Merdeka No. 1 / WA: 08123456789',
+            onChanged: (v) {
+              ref.read(printerSettingsNotifierProvider.notifier).setReceiptHeaderSubtitle(v);
+            },
+          ),
         ],
       ),
     );

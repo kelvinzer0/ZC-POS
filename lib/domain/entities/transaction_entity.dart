@@ -6,6 +6,7 @@ import 'user_entity.dart';
 class TransactionEntity extends Equatable {
   final int? id;
   final String paymentMethod;
+  final String channel;
   final String? customerName;
   final String? description;
   final String createdById;
@@ -21,6 +22,7 @@ class TransactionEntity extends Equatable {
   const TransactionEntity({
     this.id,
     required this.paymentMethod,
+    this.channel = 'offline',
     this.customerName,
     this.description,
     required this.createdById,
@@ -37,6 +39,7 @@ class TransactionEntity extends Equatable {
   TransactionEntity copyWith({
     int? id,
     String? paymentMethod,
+    String? channel,
     String? customerName,
     String? description,
     String? createdById,
@@ -52,6 +55,7 @@ class TransactionEntity extends Equatable {
     return TransactionEntity(
       id: id ?? this.id,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      channel: channel ?? this.channel,
       customerName: customerName ?? this.customerName,
       description: description ?? this.description,
       createdById: createdById ?? this.createdById,
@@ -70,6 +74,7 @@ class TransactionEntity extends Equatable {
   List<Object?> get props => [
     id,
     paymentMethod,
+    channel,
     customerName,
     description,
     createdById,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/di/app_providers.dart';
 import '../../../core/constants/constants.dart';
+import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_theme.dart';
 import '../../providers/theme/theme_state.dart';
 
@@ -18,9 +19,16 @@ class ThemeNotifier extends Notifier<ThemeState> {
     final isLight = value == 'light';
     final brightness = isLight ? Brightness.light : Brightness.dark;
 
+    final colorValue = sharedPreferences.getInt(Constants.selectedAccentColorKey);
+    final accentColor = colorValue != null ? Color(colorValue) : AppColors.orange;
+
     return ThemeState(
       isLight: isLight,
-      themeData: AppTheme().init(brightness: brightness),
+      accentColor: accentColor,
+      themeData: AppTheme().init(
+        brightness: brightness,
+        primaryColor: accentColor,
+      ),
     );
   }
 
@@ -31,9 +39,28 @@ class ThemeNotifier extends Notifier<ThemeState> {
       isLight ? 'light' : 'dark',
     );
     final brightness = isLight ? Brightness.light : Brightness.dark;
-    state = ThemeState(
+    state = state.copyWith(
       isLight: isLight,
-      themeData: AppTheme().init(brightness: brightness),
+      themeData: AppTheme().init(
+        brightness: brightness,
+        primaryColor: state.accentColor,
+      ),
+    );
+  }
+
+  void changeAccentColor(Color color) async {
+    final sharedPreferences = ref.read(sharedPreferencesProvider);
+    await sharedPreferences.setInt(
+      Constants.selectedAccentColorKey,
+      color.toARGB32(),
+    );
+    final brightness = state.isLight ? Brightness.light : Brightness.dark;
+    state = state.copyWith(
+      accentColor: color,
+      themeData: AppTheme().init(
+        brightness: brightness,
+        primaryColor: color,
+      ),
     );
   }
 }

@@ -29,6 +29,7 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
       var transaction = TransactionEntity(
         id: DateTime.now().millisecondsSinceEpoch,
         paymentMethod: state.selectedPaymentMethod,
+        channel: state.selectedChannel,
         customerName: state.customerName,
         description: state.description,
         orderedProducts: state.orderedProducts,
@@ -116,6 +117,10 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
 
   void onChangedPaymentMethod(String? value) {
     state = state.copyWith(selectedPaymentMethod: value ?? state.selectedPaymentMethod);
+  }
+
+  void onChangedChannel(String? value) {
+    state = state.copyWith(selectedChannel: value ?? state.selectedChannel);
   }
 
   void onChangedCustomerName(String value) {

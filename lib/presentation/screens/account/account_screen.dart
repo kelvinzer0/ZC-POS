@@ -246,24 +246,330 @@ class _AboutButton extends StatelessWidget {
 class _ThemeDialogBody extends ConsumerWidget {
   const _ThemeDialogBody();
 
+  static const List<Color> _presetColors = [
+    Color(0xFFE3562A), // Orange (Default)
+    Color(0xFF10B981), // Emerald Green
+    Color(0xFF2563EB), // Ocean Blue
+    Color(0xFF6366F1), // Indigo
+    Color(0xFF8B5CF6), // Purple Violet
+    Color(0xFFF43F5E), // Rose Pink
+    Color(0xFFDC2626), // Crimson Red
+    Color(0xFFF59E0B), // Amber
+    Color(0xFF0D9488), // Teal
+    Color(0xFF0284C7), // Sky Blue
+  ];
+
+  void _openColorPicker(BuildContext context, WidgetRef ref, Color currentColor) {
+    showDialog(
+      context: context,
+      builder: (ctx) => _ColorPickerModal(
+        initialColor: currentColor,
+        onColorSelected: (color) {
+          ref.read(themeNotifierProvider.notifier).changeAccentColor(color);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeState = ref.watch(themeNotifierProvider);
+    final isCustomColor = !_presetColors.any((c) => c.toARGB32() == themeState.accentColor.toARGB32());
 
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Switch(
-          value: !themeState.isLight,
-          onChanged: (val) {
-            ref.read(themeNotifierProvider.notifier).changeBrightness(!val);
-          },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  themeState.isLight ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: AppSizes.padding / 1.5),
+                Text(
+                  'Dark Mode',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            Switch(
+              value: !themeState.isLight,
+              onChanged: (val) {
+                ref.read(themeNotifierProvider.notifier).changeBrightness(!val);
+              },
+            ),
+          ],
         ),
-        const SizedBox(width: AppSizes.padding),
+        const Divider(height: AppSizes.padding * 1.5),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Warna Aksen (Accent Color)',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: themeState.accentColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 2),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
         Text(
-          'Dark Mode',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.bold,
+          'Pilih dari palet warna atau gunakan color picker kustom:',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.outline,
           ),
+        ),
+        const SizedBox(height: AppSizes.padding),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            ..._presetColors.map((color) {
+              final isSelected = color.toARGB32() == themeState.accentColor.toARGB32();
+              return InkWell(
+                onTap: () {
+                  ref.read(themeNotifierProvider.notifier).changeAccentColor(color);
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      width: 2.5,
+                    ),
+                    boxShadow: [
+                      if (isSelected)
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.6),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                    ],
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, size: 20, color: Colors.white)
+                      : null,
+                ),
+              );
+            }),
+            InkWell(
+              onTap: () => _openColorPicker(context, ref, themeState.accentColor),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  gradient: const SweepGradient(
+                    colors: [
+                      Colors.red,
+                      Colors.yellow,
+                      Colors.green,
+                      Colors.cyan,
+                      Colors.blue,
+                      Colors.purple,
+                      Colors.red,
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isCustomColor ? Colors.white : Theme.of(context).colorScheme.outlineVariant,
+                    width: isCustomColor ? 3 : 1.5,
+                  ),
+                  boxShadow: [
+                    if (isCustomColor)
+                      BoxShadow(
+                        color: themeState.accentColor.withValues(alpha: 0.6),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    isCustomColor ? Icons.check : Icons.colorize_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ColorPickerModal extends StatefulWidget {
+  final Color initialColor;
+  final ValueChanged<Color> onColorSelected;
+
+  const _ColorPickerModal({
+    required this.initialColor,
+    required this.onColorSelected,
+  });
+
+  @override
+  State<_ColorPickerModal> createState() => _ColorPickerModalState();
+}
+
+class _ColorPickerModalState extends State<_ColorPickerModal> {
+  late double _hue;
+  late double _saturation;
+  late double _value;
+  late TextEditingController _hexController;
+
+  @override
+  void initState() {
+    super.initState();
+    final hsv = HSVColor.fromColor(widget.initialColor);
+    _hue = hsv.hue;
+    _saturation = hsv.saturation;
+    _value = hsv.value;
+    _hexController = TextEditingController(text: _colorToHex(widget.initialColor));
+  }
+
+  @override
+  void dispose() {
+    _hexController.dispose();
+    super.dispose();
+  }
+
+  Color get _currentColor => HSVColor.fromAHSV(1.0, _hue, _saturation, _value).toColor();
+
+  String _colorToHex(Color color) {
+    return '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+  }
+
+  void _onHexSubmitted(String hex) {
+    var cleaned = hex.replaceAll('#', '').trim();
+    if (cleaned.length == 6) {
+      final parsed = int.tryParse('FF$cleaned', radix: 16);
+      if (parsed != null) {
+        final color = Color(parsed);
+        final hsv = HSVColor.fromColor(color);
+        setState(() {
+          _hue = hsv.hue;
+          _saturation = hsv.saturation;
+          _value = hsv.value;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentColor = _currentColor;
+
+    return AlertDialog(
+      title: const Text('Color Picker Kustom'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: currentColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: currentColor.withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.padding),
+            Text('Hue / Spektrum Warna: ${_hue.round()}°', style: Theme.of(context).textTheme.bodySmall),
+            Slider(
+              value: _hue,
+              min: 0,
+              max: 360,
+              activeColor: currentColor,
+              onChanged: (val) {
+                setState(() {
+                  _hue = val;
+                  _hexController.text = _colorToHex(_currentColor);
+                });
+              },
+            ),
+            Text('Saturation (Kepekatan): ${(_saturation * 100).round()}%', style: Theme.of(context).textTheme.bodySmall),
+            Slider(
+              value: _saturation,
+              min: 0,
+              max: 1.0,
+              activeColor: currentColor,
+              onChanged: (val) {
+                setState(() {
+                  _saturation = val;
+                  _hexController.text = _colorToHex(_currentColor);
+                });
+              },
+            ),
+            Text('Brightness (Kecerahan): ${(_value * 100).round()}%', style: Theme.of(context).textTheme.bodySmall),
+            Slider(
+              value: _value,
+              min: 0.1,
+              max: 1.0,
+              activeColor: currentColor,
+              onChanged: (val) {
+                setState(() {
+                  _value = val;
+                  _hexController.text = _colorToHex(_currentColor);
+                });
+              },
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _hexController,
+              decoration: const InputDecoration(
+                labelText: 'Kode HEX Warna',
+                hintText: '#E3562A',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              onSubmitted: _onHexSubmitted,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () {
+            widget.onColorSelected(currentColor);
+            Navigator.pop(context);
+          },
+          child: const Text('Terapkan'),
         ),
       ],
     );

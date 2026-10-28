@@ -54,6 +54,29 @@ class PrinterService {
     }
   }
 
+  String get receiptHeaderTitle =>
+      _sharedPreferences.getString(Constants.receiptHeaderTitleKey) ?? 'ZC-POS';
+
+  Future<void> setReceiptHeaderTitle(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await _sharedPreferences.remove(Constants.receiptHeaderTitleKey);
+    } else {
+      await _sharedPreferences.setString(Constants.receiptHeaderTitleKey, value.trim());
+    }
+  }
+
+  String get receiptHeaderSubtitle =>
+      _sharedPreferences.getString(Constants.receiptHeaderSubtitleKey) ??
+      'https://github.com/kelvinzer0/ZC-POS';
+
+  Future<void> setReceiptHeaderSubtitle(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await _sharedPreferences.remove(Constants.receiptHeaderSubtitleKey);
+    } else {
+      await _sharedPreferences.setString(Constants.receiptHeaderSubtitleKey, value.trim());
+    }
+  }
+
   Future<Result<void>> scanPrinters({
     Set<PrinterConnectionType> types = const {
       PrinterConnectionType.usb,
@@ -219,22 +242,26 @@ class PrinterService {
         }
       }
 
-      ticket.text(
-        'ZC-POS',
-        align: PrintAlign.center,
-        style: const PrintTextStyle(
-          bold: true,
-          height: TextSize.size2,
-          width: TextSize.size2,
-        ),
-      );
-      ticket.text(
-        'https://github.com/kelvinzer0/ZC-POS',
-        align: PrintAlign.center,
-        style: PrintTextStyle(
-          fontType: FontType.fontB,
-        ),
-      );
+      if (receiptHeaderTitle.trim().isNotEmpty) {
+        ticket.text(
+          receiptHeaderTitle.trim(),
+          align: PrintAlign.center,
+          style: const PrintTextStyle(
+            bold: true,
+            height: TextSize.size2,
+            width: TextSize.size2,
+          ),
+        );
+      }
+      if (receiptHeaderSubtitle.trim().isNotEmpty) {
+        ticket.text(
+          receiptHeaderSubtitle.trim(),
+          align: PrintAlign.center,
+          style: const PrintTextStyle(
+            fontType: FontType.fontB,
+          ),
+        );
+      }
 
       ticket.emptyLines();
 
@@ -244,6 +271,7 @@ class PrinterService {
 
       ticket.text('Date: $date');
       ticket.text('Trx. ID: #${transaction.id}');
+      ticket.text('Channel: ${transaction.channel.toUpperCase()}');
       ticket.text('Customer: ${transaction.customerName ?? '-'}');
       ticket.text('Created by: ${transaction.createdBy?.name ?? '-'}');
 
@@ -391,6 +419,7 @@ class PrinterService {
 
       ticket.text('Trx. ID: #${transaction.id}', style: const PrintTextStyle(bold: true));
       ticket.text('Date: $date');
+      ticket.text('Channel: ${transaction.channel.toUpperCase()}');
       if (transaction.customerName != null &&
           transaction.customerName!.trim().isNotEmpty &&
           transaction.customerName != '-') {

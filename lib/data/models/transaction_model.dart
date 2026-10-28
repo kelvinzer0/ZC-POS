@@ -5,6 +5,7 @@ import 'user_model.dart';
 class TransactionModel {
   int id;
   String paymentMethod;
+  String channel;
   String? customerName;
   String? description;
   String createdById;
@@ -20,6 +21,7 @@ class TransactionModel {
   TransactionModel({
     required this.id,
     required this.paymentMethod,
+    this.channel = 'offline',
     this.customerName,
     this.description,
     required this.createdById,
@@ -37,6 +39,7 @@ class TransactionModel {
     return TransactionModel(
       id: json['id'],
       paymentMethod: json['paymentMethod'],
+      channel: json['channel'] ?? 'offline',
       customerName: json['customerName'],
       description: json['description'],
       createdById: json['createdById'],
@@ -57,6 +60,7 @@ class TransactionModel {
     return {
       'id': id,
       'paymentMethod': paymentMethod,
+      'channel': channel,
       'customerName': customerName,
       'description': description,
       'createdById': createdById,
@@ -75,6 +79,7 @@ class TransactionModel {
     return TransactionModel(
       id: entity.id ?? DateTime.now().millisecondsSinceEpoch,
       paymentMethod: entity.paymentMethod,
+      channel: entity.channel,
       customerName: entity.customerName,
       description: entity.description,
       createdById: entity.createdById,
@@ -93,6 +98,7 @@ class TransactionModel {
     return TransactionEntity(
       id: id,
       paymentMethod: paymentMethod,
+      channel: channel,
       customerName: customerName,
       description: description,
       createdBy: createdBy?.toEntity(),

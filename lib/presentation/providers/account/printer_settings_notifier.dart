@@ -17,6 +17,8 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
     return PrinterSettingsState(
       paperSize: printerService.paperSize,
       receiptLogoPath: printerService.receiptLogoPath,
+      receiptHeaderTitle: printerService.receiptHeaderTitle,
+      receiptHeaderSubtitle: printerService.receiptHeaderSubtitle,
       selectedTypes: {
         PrinterConnectionType.usb,
         PrinterConnectionType.bluetooth,
@@ -32,6 +34,16 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
       receiptLogoPath: path,
       clearReceiptLogo: path == null,
     );
+  }
+
+  Future<void> setReceiptHeaderTitle(String? title) async {
+    await ref.read(printerServiceProvider).setReceiptHeaderTitle(title);
+    state = state.copyWith(receiptHeaderTitle: title ?? 'ZC-POS');
+  }
+
+  Future<void> setReceiptHeaderSubtitle(String? subtitle) async {
+    await ref.read(printerServiceProvider).setReceiptHeaderSubtitle(subtitle);
+    state = state.copyWith(receiptHeaderSubtitle: subtitle ?? 'https://github.com/kelvinzer0/ZC-POS');
   }
 
   void setPaperSize(PaperSize size) {

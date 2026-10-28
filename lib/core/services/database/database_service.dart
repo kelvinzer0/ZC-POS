@@ -57,6 +57,11 @@ class DatabaseService {
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.orderedProductTableName}' ADD COLUMN notes TEXT");
     } catch (_) {}
+
+    // Ensure channel column exists in Transaction table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN channel TEXT DEFAULT 'offline'");
+    } catch (_) {}
   }
 
   @visibleForTesting
@@ -80,6 +85,11 @@ class DatabaseService {
     // Ensure notes column exists in OrderedProduct table for existing databases
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.orderedProductTableName}' ADD COLUMN notes TEXT");
+    } catch (_) {}
+
+    // Ensure channel column exists in Transaction table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN channel TEXT DEFAULT 'offline'");
     } catch (_) {}
   }
 

@@ -4,6 +4,7 @@ class HomeState {
   final List<OrderedProductEntity> orderedProducts;
   final int receivedAmount;
   final String selectedPaymentMethod;
+  final String selectedChannel;
   final String? customerName;
   final String? description;
   final bool isPanelExpanded;
@@ -12,6 +13,7 @@ class HomeState {
     this.orderedProducts = const [],
     this.receivedAmount = 0,
     this.selectedPaymentMethod = 'cash',
+    this.selectedChannel = 'offline',
     this.customerName,
     this.description,
     this.isPanelExpanded = false,
@@ -21,6 +23,7 @@ class HomeState {
     List<OrderedProductEntity>? orderedProducts,
     int? receivedAmount,
     String? selectedPaymentMethod,
+    String? selectedChannel,
     String? customerName,
     String? description,
     bool? isPanelExpanded,
@@ -29,6 +32,7 @@ class HomeState {
       orderedProducts: orderedProducts ?? this.orderedProducts,
       receivedAmount: receivedAmount ?? this.receivedAmount,
       selectedPaymentMethod: selectedPaymentMethod ?? this.selectedPaymentMethod,
+      selectedChannel: selectedChannel ?? this.selectedChannel,
       customerName: customerName ?? this.customerName,
       description: description ?? this.description,
       isPanelExpanded: isPanelExpanded ?? this.isPanelExpanded,
