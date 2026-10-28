@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"hobi-haus-web","appId":"1:555155784059:android:89af0e1e1ce015ac9dbdde","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"hobi-haus-web","configurations":{"android":"1:555155784059:android:89af0e1e1ce015ac9dbdde","web":"1:555155784059:web:95e8063aa328e8089dbdde"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "hobi-haus-web",
+          "appId": "1:555155784059:android:89af0e1e1ce015ac9dbdde",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "hobi-haus-web",
+          "configurations": {
+            "android": "1:555155784059:android:89af0e1e1ce015ac9dbdde",
+            "web": "1:555155784059:web:95e8063aa328e8089dbdde"
+          }
+        }
+      }
+    }
+  }
+}

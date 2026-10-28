@@ -37,14 +37,17 @@ android {
         multiDexEnabled = true
     }
 
-    // signingConfigs {
-    //     create("release") {
-    //         keyAlias = keystoreProperties["keyAlias"] as String
-    //         keyPassword = keystoreProperties["keyPassword"] as String
-    //         storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-    //         storePassword = keystoreProperties["storePassword"] as String
-    //     }
-    // }
+    signingConfigs {
+        getByName("debug") {
+            val debugKey = file("debug.keystore")
+            if (debugKey.exists()) {
+                storeFile = debugKey
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
 
     buildTypes {
         release {
