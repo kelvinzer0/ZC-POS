@@ -17,7 +17,7 @@ plugins {
 android {
     namespace = "com.elriztechnology.flutter_pos"
     compileSdk = 36
-    ndkVersion = "28.2.13676358"
+    // ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -62,7 +62,7 @@ flutter {
 }
 
 dependencies {
-    implementation("com.android.support:multidex:2.0.1")
+    implementation("androidx.multidex:multidex:2.0.1")
     implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
     implementation("com.google.firebase:firebase-analytics")
 }
