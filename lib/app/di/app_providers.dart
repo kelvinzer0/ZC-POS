@@ -12,6 +12,7 @@ import '../../core/services/database/database_service.dart';
 import '../../core/services/info/device_info_service.dart';
 import '../../core/services/logger/error_logger_service.dart';
 import '../../core/services/printer/printer_service.dart';
+import '../../core/services/store/store_service.dart';
 import '../../data/datasources/local/product_local_datasource_impl.dart';
 import '../../data/datasources/local/queued_action_local_datasource_impl.dart';
 import '../../data/datasources/local/transaction_local_datasource_impl.dart';
@@ -63,6 +64,13 @@ final errorLoggerServiceProvider = Provider<ErrorLoggerService>(
 final printerServiceProvider = Provider<PrinterService>(
   (ref) => PrinterService(ref.watch(sharedPreferencesProvider)),
 );
+final storeServiceProvider = Provider<StoreService>(
+  (ref) => StoreService(
+    ref.watch(sharedPreferencesProvider),
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(printerServiceProvider),
+  ),
+);
 
 // Datasources
 // Local Datasources
@@ -90,10 +98,16 @@ final storageRemoteDataSourceProvider = Provider<StorageRemoteDataSourceImpl>(
   (ref) => StorageRemoteDataSourceImpl(ref.watch(firebaseStorageProvider)),
 );
 final productRemoteDatasourceProvider = Provider<ProductRemoteDatasourceImpl>(
-  (ref) => ProductRemoteDatasourceImpl(ref.watch(firebaseFirestoreProvider)),
+  (ref) => ProductRemoteDatasourceImpl(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(sharedPreferencesProvider),
+  ),
 );
 final transactionRemoteDatasourceProvider = Provider<TransactionRemoteDatasourceImpl>(
-  (ref) => TransactionRemoteDatasourceImpl(ref.watch(firebaseFirestoreProvider)),
+  (ref) => TransactionRemoteDatasourceImpl(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(sharedPreferencesProvider),
+  ),
 );
 final userRemoteDatasourceProvider = Provider<UserRemoteDatasourceImpl>(
   (ref) => UserRemoteDatasourceImpl(ref.watch(firebaseFirestoreProvider)),

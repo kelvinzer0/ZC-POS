@@ -46,6 +46,7 @@ class ThemeNotifier extends Notifier<ThemeState> {
         primaryColor: state.accentColor,
       ),
     );
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 
   void changeAccentColor(Color color) async {
@@ -62,5 +63,6 @@ class ThemeNotifier extends Notifier<ThemeState> {
         primaryColor: color,
       ),
     );
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 }

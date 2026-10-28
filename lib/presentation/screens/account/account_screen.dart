@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +10,7 @@ import '../../../core/themes/app_sizes.dart';
 import '../../providers/account/printer_settings_notifier.dart';
 import '../../providers/auth/auth_notifier.dart';
 import '../../providers/main/main_notifier.dart';
+import '../../providers/store/store_notifier.dart';
 import '../../providers/theme/theme_notifier.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_dialog.dart';
@@ -26,6 +28,7 @@ class AccountScreen extends StatelessWidget {
         child: Column(
           children: [
             _UserInfo(),
+            _StoreCodeSection(),
             _ProfileButton(),
             _ThemeButton(),
             _PrinterSettingsButton(),
@@ -79,6 +82,183 @@ class _UserInfo extends ConsumerWidget {
           Text(
             user?.email ?? '',
             style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StoreCodeSection extends ConsumerWidget {
+  const _StoreCodeSection();
+
+  void _showChangeStoreDialog(BuildContext context, WidgetRef ref, String currentCode) {
+    final controller = TextEditingController(text: currentCode);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.storefront_rounded),
+            SizedBox(width: 8),
+            Text('Ganti / Buat Toko'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Masukkan Store Code untuk menghubungkan akun ini ke toko lain, atau buat toko baru.',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: 'Store Code',
+                hintText: 'Misal: LAKKU-01',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.auto_awesome),
+                  tooltip: 'Generate Kode Baru',
+                  onPressed: () {
+                    final newCode = ref.read(storeNotifierProvider.notifier).generateNewStoreCode();
+                    controller.text = newCode;
+                  },
+                ),
+              ),
+              textCapitalization: TextCapitalization.characters,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final newCode = controller.text.trim().toUpperCase().replaceAll(' ', '-');
+              if (newCode.isNotEmpty) {
+                Navigator.pop(ctx);
+                await AppDialog.showProgress(() async {
+                  await ref.read(storeNotifierProvider.notifier).setStoreCode(newCode);
+                });
+                AppSnackBar.show('Store Code berhasil diubah ke: $newCode');
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final storeState = ref.watch(storeNotifierProvider);
+    final activeCode = storeState.activeStoreCode;
+
+    return Container(
+      margin: const EdgeInsets.only(top: AppSizes.padding / 2),
+      padding: const EdgeInsets.all(AppSizes.padding),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppSizes.radius),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.storefront_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Shared Store Code',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              if (storeState.isSyncing)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Semua akun dengan Store Code ini otomatis berbagi katalog produk, transaksi, dan setting printer/tema secara cloud.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                  fontSize: 11,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SelectableText(
+                    activeCode,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      fontFamily: 'monospace',
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  tooltip: 'Salin Store Code',
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: activeCode));
+                    AppSnackBar.show('Store Code disalin! Bagikan ke akun lain untuk bergabung.');
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showChangeStoreDialog(context, ref, activeCode),
+                  icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+                  label: const Text('Ganti / Buat Baru', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await AppDialog.showProgress(() async {
+                      await ref.read(storeNotifierProvider.notifier).fetchFromCloud();
+                      await ref.read(storeNotifierProvider.notifier).syncToCloud();
+                    });
+                    AppSnackBar.show('Pengaturan & data toko berhasil disinkronkan ke cloud');
+                  },
+                  icon: const Icon(Icons.cloud_sync_rounded, size: 16),
+                  label: const Text('Sync Cloud', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ],
           ),
         ],
       ),

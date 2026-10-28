@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/common/result.dart';
+import '../../../core/constants/constants.dart';
 import '../../models/ordered_product_model.dart';
 import '../../models/product_model.dart';
 import '../../models/transaction_model.dart';
@@ -9,8 +11,9 @@ import '../interfaces/transaction_datasource.dart';
 
 class TransactionRemoteDatasourceImpl extends TransactionDatasource {
   final FirebaseFirestore _firebaseFirestore;
+  final SharedPreferences? _sharedPreferences;
 
-  TransactionRemoteDatasourceImpl(this._firebaseFirestore);
+  TransactionRemoteDatasourceImpl(this._firebaseFirestore, [this._sharedPreferences]);
 
   @override
   Future<Result<int>> createTransaction(TransactionModel transaction) async {
@@ -52,12 +55,18 @@ class TransactionRemoteDatasourceImpl extends TransactionDatasource {
         }
 
         // Create transaction
+        final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+        final trxData = transaction.toJson()
+          ..remove('orderedProducts')
+          ..remove('createdBy');
+        if (storeCode != null && storeCode.isNotEmpty) {
+          trxData['storeCode'] = storeCode;
+        }
+
         var transactionDocRef = _firebaseFirestore.collection('Transaction').doc('${transaction.id}');
         trx.set(
           transactionDocRef,
-          transaction.toJson()
-            ..remove('orderedProducts')
-            ..remove('createdBy'),
+          trxData,
         );
 
         // The id has been generated in models
@@ -202,19 +211,32 @@ class TransactionRemoteDatasourceImpl extends TransactionDatasource {
   @override
   Future<Result<List<TransactionModel>>> getAllUserTransactions(String userId) async {
     try {
-      // Get transactions
-      var rawTransactions = await _firebaseFirestore
-          .collection('Transaction')
-          .where('createdById', isEqualTo: userId)
-          .get();
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      QuerySnapshot<Map<String, dynamic>> rawTransactions;
+
+      if (storeCode != null && storeCode.isNotEmpty) {
+        rawTransactions = await _firebaseFirestore
+            .collection('Transaction')
+            .where('storeCode', isEqualTo: storeCode)
+            .get();
+        if (rawTransactions.docs.isEmpty) {
+          rawTransactions = await _firebaseFirestore
+              .collection('Transaction')
+              .where('createdById', isEqualTo: userId)
+              .get();
+        }
+      } else {
+        rawTransactions = await _firebaseFirestore
+            .collection('Transaction')
+            .where('createdById', isEqualTo: userId)
+            .get();
+      }
 
       var transactions = rawTransactions.docs.map((e) => TransactionModel.fromJson(e.data())).toList();
 
       // Get user
       var rawUser = await _firebaseFirestore.collection('User').doc(userId).get();
-      if (rawUser.data() == null) return Result.failure(error: 'User data not found');
-
-      var user = UserModel.fromJson(rawUser.data()!);
+      var user = rawUser.data() != null ? UserModel.fromJson(rawUser.data()!) : null;
 
       for (var transaction in transactions) {
         // Get transaction ordered products
@@ -246,9 +268,11 @@ class TransactionRemoteDatasourceImpl extends TransactionDatasource {
     String? contains,
   }) async {
     try {
-      var query = _firebaseFirestore
-          .collection('Transaction')
-          .where('createdById', isEqualTo: userId);
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+
+      var query = (storeCode != null && storeCode.isNotEmpty)
+          ? _firebaseFirestore.collection('Transaction').where('storeCode', isEqualTo: storeCode)
+          : _firebaseFirestore.collection('Transaction').where('createdById', isEqualTo: userId);
 
       if (contains != null && contains.isNotEmpty) {
         query = query.where('id', arrayContains: contains);

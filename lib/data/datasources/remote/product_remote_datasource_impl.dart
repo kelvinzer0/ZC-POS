@@ -1,18 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/common/result.dart';
+import '../../../core/constants/constants.dart';
 import '../../models/product_model.dart';
 import '../interfaces/product_datasource.dart';
 
 class ProductRemoteDatasourceImpl extends ProductDatasource {
   final FirebaseFirestore _firebaseFirestore;
+  final SharedPreferences? _sharedPreferences;
 
-  ProductRemoteDatasourceImpl(this._firebaseFirestore);
+  ProductRemoteDatasourceImpl(this._firebaseFirestore, [this._sharedPreferences]);
 
   @override
   Future<Result<int>> createProduct(ProductModel product) async {
     try {
-      await _firebaseFirestore.collection('Product').doc("${product.id}").set(product.toJson());
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      final json = product.toJson();
+      if (storeCode != null && storeCode.isNotEmpty) {
+        json['storeCode'] = storeCode;
+      }
+      await _firebaseFirestore.collection('Product').doc("${product.id}").set(json);
       // The id has been generated in models
       return Result.success(data: product.id);
     } catch (e) {
@@ -23,10 +31,15 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
   @override
   Future<Result<void>> updateProduct(ProductModel product) async {
     try {
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      final json = product.toJson();
+      if (storeCode != null && storeCode.isNotEmpty) {
+        json['storeCode'] = storeCode;
+      }
       await _firebaseFirestore
           .collection('Product')
           .doc("${product.id}")
-          .set(product.toJson(), SetOptions(merge: true));
+          .set(json, SetOptions(merge: true));
 
       return Result.success(data: null);
     } catch (e) {
@@ -58,7 +71,25 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
   @override
   Future<Result<List<ProductModel>>> getAllUserProducts(String userId) async {
     try {
-      var res = await _firebaseFirestore.collection('Product').where('createdById', isEqualTo: userId).get();
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      QuerySnapshot<Map<String, dynamic>> res;
+      if (storeCode != null && storeCode.isNotEmpty) {
+        res = await _firebaseFirestore
+            .collection('Product')
+            .where('storeCode', isEqualTo: storeCode)
+            .get();
+        if (res.docs.isEmpty) {
+          res = await _firebaseFirestore
+              .collection('Product')
+              .where('createdById', isEqualTo: userId)
+              .get();
+        }
+      } else {
+        res = await _firebaseFirestore
+            .collection('Product')
+            .where('createdById', isEqualTo: userId)
+            .get();
+      }
       var products = res.docs.map((e) => ProductModel.fromJson(e.data())).toList();
       return Result.success(data: products);
     } catch (e) {
@@ -76,13 +107,11 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
     String? contains,
   }) async {
     try {
-      // Because firestore doesn't support numeric offset
-      // Instead, use query cursors. Get last document snapshot then pass it to startAfterDocument
-      // https://firebase.google.com/docs/firestore/query-data/query-cursors
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
 
-      var query = _firebaseFirestore
-          .collection('Product')
-          .where('createdById', isEqualTo: userId);
+      var query = (storeCode != null && storeCode.isNotEmpty)
+          ? _firebaseFirestore.collection('Product').where('storeCode', isEqualTo: storeCode)
+          : _firebaseFirestore.collection('Product').where('createdById', isEqualTo: userId);
 
       if (contains != null && contains.isNotEmpty) {
         query = query.where('name', arrayContains: contains);
@@ -95,9 +124,9 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
       if (offset != null) {
         DocumentSnapshot<Object?>? lastSnapshot;
 
-        var temp = await _firebaseFirestore
-            .collection('Product')
-            .where('createdById', isEqualTo: userId)
+        var temp = await ((storeCode != null && storeCode.isNotEmpty)
+                ? _firebaseFirestore.collection('Product').where('storeCode', isEqualTo: storeCode)
+                : _firebaseFirestore.collection('Product').where('createdById', isEqualTo: userId))
             .orderBy(orderBy, descending: sortBy == 'DESC')
             .limit(offset)
             .get();

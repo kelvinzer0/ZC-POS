@@ -12,6 +12,7 @@ import '../../providers/account/printer_settings_notifier.dart';
 import '../../providers/home/home_notifier.dart';
 import '../../providers/main/main_notifier.dart';
 import '../../providers/products/products_notifier.dart';
+import '../../providers/store/store_notifier.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_dialog.dart';
 import '../../widgets/app_empty_state.dart';
@@ -350,12 +351,32 @@ class _Title extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              user?.name ?? '',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                height: 0,
-              ),
+            Row(
+              children: [
+                Text(
+                  user?.name ?? '',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    height: 0,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    ref.watch(storeNotifierProvider.select((s) => s.activeStoreCode)),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
             ),
             Text(
               user?.email ?? '',

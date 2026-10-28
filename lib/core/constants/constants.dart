@@ -15,6 +15,7 @@ class Constants {
   static const String receiptLogoPathKey = 'receipt_logo_path';
   static const String receiptHeaderTitleKey = 'receipt_header_title';
   static const String receiptHeaderSubtitleKey = 'receipt_header_subtitle';
+  static const String activeStoreCodeKey = 'active_store_code';
 
   static const int minSyncIntervalToleranceForCriticalInMinutes = 5;
   static const int minSyncIntervalToleranceForLessCriticalInMinutes = 100;

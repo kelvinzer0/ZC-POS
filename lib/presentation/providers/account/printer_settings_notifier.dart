@@ -50,16 +50,19 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
       receiptLogoPath: path,
       clearReceiptLogo: path == null,
     );
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 
   Future<void> setReceiptHeaderTitle(String? title) async {
     await ref.read(printerServiceProvider).setReceiptHeaderTitle(title);
     state = state.copyWith(receiptHeaderTitle: title ?? 'ZC-POS');
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 
   Future<void> setReceiptHeaderSubtitle(String? subtitle) async {
     await ref.read(printerServiceProvider).setReceiptHeaderSubtitle(subtitle);
     state = state.copyWith(receiptHeaderSubtitle: subtitle ?? 'https://github.com/kelvinzer0/ZC-POS');
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 
   void setPaperSize(PaperSize size) {
@@ -67,6 +70,7 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
 
     ref.read(printerServiceProvider).setPaperSize(size);
     state = state.copyWith(paperSize: size);
+    ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 
   int get selectedPrinterIndex {

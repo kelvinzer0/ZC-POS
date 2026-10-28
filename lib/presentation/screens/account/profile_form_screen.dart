@@ -7,9 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../app/di/app_providers.dart';
 import '../../../core/themes/app_sizes.dart';
 import '../../providers/account/account_notifier.dart';
 import '../../providers/main/main_notifier.dart';
+import '../../providers/store/store_notifier.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_dialog.dart';
 import '../../widgets/app_icon_button.dart';
@@ -28,6 +30,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
+  final storeCodeController = TextEditingController();
 
   @override
   void initState() {
@@ -39,6 +42,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       nameController.text = state.name ?? '';
       emailController.text = state.email ?? '';
       phoneController.text = state.phone ?? '';
+      storeCodeController.text = ref.read(storeServiceProvider).activeStoreCode;
     });
   }
 
@@ -47,6 +51,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
+    storeCodeController.dispose();
     super.dispose();
   }
 
@@ -74,6 +79,11 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   }
 
   void updatedUser() async {
+    final code = storeCodeController.text.trim().toUpperCase().replaceAll(' ', '-');
+    if (code.isNotEmpty) {
+      await ref.read(storeNotifierProvider.notifier).setStoreCode(code);
+    }
+
     var res = await AppDialog.showProgress(() {
       return ref.read(accountNotifierProvider.notifier).updatedUser();
     });
@@ -109,6 +119,13 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _ImageSection(onTapImage: onTapImage),
+                  _StoreCodeField(
+                    controller: storeCodeController,
+                    onGenerate: () {
+                      final newCode = ref.read(storeNotifierProvider.notifier).generateNewStoreCode();
+                      storeCodeController.text = newCode;
+                    },
+                  ),
                   _NameField(controller: nameController, onChanged: account.onChangedName),
                   _EmailField(controller: emailController, onChanged: account.onChangedEmail),
                   _PhoneField(controller: phoneController, onChanged: account.onChangedPhone),
@@ -176,6 +193,33 @@ class _ImageSection extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _StoreCodeField extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onGenerate;
+
+  const _StoreCodeField({
+    required this.controller,
+    required this.onGenerate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSizes.padding),
+      child: AppTextField(
+        controller: controller,
+        labelText: 'Store Code (Kode Toko)',
+        hintText: 'Misal: LAKKU-01',
+        suffixWidget: IconButton(
+          icon: const Icon(Icons.auto_awesome, size: 20),
+          tooltip: 'Generate Kode Toko Baru',
+          onPressed: onGenerate,
+        ),
+      ),
     );
   }
 }
