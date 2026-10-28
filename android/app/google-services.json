@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:406037321591:android:dd6f394a021c2220a3b372",
         "android_client_info": {
-          "package_name": "com.elriztechnology.flutter_pos"
+          "package_name": "com.zerolabsimpact.zcpos"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "406037321591-oo52bjfle9q7ubesvjhptj8i95d9g85a.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.elriztechnology.flutter_pos",
+            "package_name": "com.zerolabsimpact.zcpos",
             "certificate_hash": "896e5dee866c5c32e6f16cec445d600762349b58"
           }
         },

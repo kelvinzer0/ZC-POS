@@ -1,4 +1,4 @@
-package com.elriztechnology.flutter_pos
+package com.zerolabsimpact.zcpos
 
 import io.flutter.embedding.android.FlutterActivity
 
