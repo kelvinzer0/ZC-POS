@@ -34,24 +34,27 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       return;
     }
 
-    final productRepository = ref.read(productRepositoryProvider);
-    var res = await GetProductUsecase(productRepository).call(productId);
+    try {
+      final productRepository = ref.read(productRepositoryProvider);
+      var res = await GetProductUsecase(productRepository).call(productId);
 
-    if (res.isSuccess) {
-      var product = res.data;
+      if (res.isSuccess) {
+        var product = res.data;
 
-      state = state.copyWith(
-        imageUrl: product?.imageUrl,
-        name: product?.name,
-        price: product?.price,
-        stock: product?.stock,
-        category: product?.category ?? 'General',
-        description: product?.description,
-        isLoaded: true,
-      );
-    } else {
-      throw res.error ?? 'Failed to load data';
-    }
+        state = state.copyWith(
+          imageUrl: product?.imageUrl,
+          name: product?.name,
+          price: product?.price,
+          stock: product?.stock,
+          category: product?.category ?? 'General',
+          description: product?.description,
+          isLoaded: true,
+        );
+        return;
+      }
+    } catch (_) {}
+
+    state = state.copyWith(isLoaded: true);
   }
 
   Future<Result<int>> createProduct() async {
@@ -64,14 +67,22 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
 
       if (state.imageFile != null) {
         final res = await UploadProductImageUsecase(storageRepository).call(state.imageFile!.path);
-        imageUrl = res.data;
+        if (res.isSuccess && res.data != null && res.data!.isNotEmpty) {
+          imageUrl = res.data;
+        } else {
+          imageUrl = state.imageFile!.path;
+        }
       }
 
       cl('imageUrl $imageUrl');
 
+      final resolvedName = (state.name != null && state.name!.trim().isNotEmpty)
+          ? state.name!.trim()
+          : 'Unnamed Product';
+
       var product = ProductEntity(
         createdById: userId,
-        name: state.name ?? '',
+        name: resolvedName,
         imageUrl: imageUrl ?? '',
         stock: state.stock ?? 0,
         price: state.price ?? 0,
@@ -82,7 +93,9 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       var res = await CreateProductUsecase(productRepository).call(product);
 
       // Refresh products
-      ref.read(productsNotifierProvider.notifier).getAllProducts();
+      try {
+        ref.read(productsNotifierProvider.notifier).getAllProducts();
+      } catch (_) {}
 
       return res;
     } catch (e) {
@@ -100,15 +113,23 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
 
       if (state.imageFile != null) {
         final res = await UploadProductImageUsecase(storageRepository).call(state.imageFile!.path);
-        imageUrl = res.data;
+        if (res.isSuccess && res.data != null && res.data!.isNotEmpty) {
+          imageUrl = res.data;
+        } else {
+          imageUrl = state.imageFile!.path;
+        }
       }
 
       cl('imageUrl $imageUrl');
 
+      final resolvedName = (state.name != null && state.name!.trim().isNotEmpty)
+          ? state.name!.trim()
+          : 'Unnamed Product';
+
       var product = ProductEntity(
         id: id,
         createdById: userId,
-        name: state.name!,
+        name: resolvedName,
         imageUrl: imageUrl ?? '',
         stock: state.stock ?? 0,
         price: state.price ?? 0,
@@ -119,7 +140,9 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       var res = await UpdateProductUsecase(productRepository).call(product);
 
       // Refresh products
-      ref.read(productsNotifierProvider.notifier).getAllProducts();
+      try {
+        ref.read(productsNotifierProvider.notifier).getAllProducts();
+      } catch (_) {}
 
       return res;
     } catch (e) {

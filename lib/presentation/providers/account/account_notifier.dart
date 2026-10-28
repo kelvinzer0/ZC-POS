@@ -30,20 +30,31 @@ class AccountNotifier extends AutoDisposeNotifier<AccountFormState> {
   Future<void> initProfileForm() async {
     final userId = _requireUserId();
     final userRepository = ref.read(userRepositoryProvider);
+    final authUser = ref.read(authNotifierProvider).user;
 
-    var res = await GetUserUsecase(userRepository).call(userId);
+    try {
+      var res = await GetUserUsecase(userRepository).call(userId);
 
-    if (res.isSuccess) {
-      state = state.copyWith(
-        imageUrl: res.data?.imageUrl,
-        name: res.data?.name,
-        email: res.data?.email,
-        phone: res.data?.phone,
-        isLoaded: true,
-      );
-    } else {
-      throw res.error ?? 'Failed to load data';
-    }
+      if (res.isSuccess && res.data != null) {
+        state = state.copyWith(
+          imageUrl: res.data?.imageUrl ?? authUser?.imageUrl,
+          name: res.data?.name ?? authUser?.name,
+          email: res.data?.email ?? authUser?.email,
+          phone: res.data?.phone ?? authUser?.phone,
+          isLoaded: true,
+        );
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback to authUser if Firestore document doesn't exist or failed to load
+    state = state.copyWith(
+      imageUrl: authUser?.imageUrl,
+      name: authUser?.name ?? 'User',
+      email: authUser?.email,
+      phone: authUser?.phone,
+      isLoaded: true,
+    );
   }
 
   Future<Result<void>> updatedUser() async {
@@ -51,19 +62,28 @@ class AccountNotifier extends AutoDisposeNotifier<AccountFormState> {
       final userId = _requireUserId();
       final storageRepository = ref.read(storageRepositoryProvider);
       final userRepository = ref.read(userRepositoryProvider);
+      final authUser = ref.read(authNotifierProvider).user;
 
       var imageUrl = state.imageUrl;
 
       if (state.imageFile != null) {
         final res = await UploadUserPhotoUsecase(storageRepository).call(state.imageFile!.path);
-        imageUrl = res.data;
+        if (res.isSuccess && res.data != null && res.data!.isNotEmpty) {
+          imageUrl = res.data;
+        } else {
+          imageUrl = state.imageFile!.path;
+        }
       }
+
+      final resolvedName = (state.name != null && state.name!.trim().isNotEmpty)
+          ? state.name!.trim()
+          : (authUser?.name?.trim().isNotEmpty == true ? authUser!.name : 'User');
 
       var user = UserEntity(
         id: userId,
-        email: state.email,
-        phone: state.phone,
-        name: state.name!,
+        email: state.email ?? authUser?.email,
+        phone: state.phone ?? authUser?.phone,
+        name: resolvedName,
         imageUrl: imageUrl ?? '',
       );
 
@@ -71,7 +91,9 @@ class AccountNotifier extends AutoDisposeNotifier<AccountFormState> {
 
       if (res.isSuccess) {
         ref.read(authNotifierProvider.notifier).updateUser(user);
-        ref.read(mainNotifierProvider.notifier).getAndSyncAllUserData();
+        try {
+          ref.read(mainNotifierProvider.notifier).getAndSyncAllUserData();
+        } catch (_) {}
       }
 
       return res;

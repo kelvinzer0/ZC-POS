@@ -56,29 +56,51 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   }
 
   void onTapImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
-    );
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+      );
 
-    if (pickedFile == null) return;
+      if (pickedFile == null) return;
 
-    CroppedFile? croppedFile = await ImageCropper().cropImage(
-      sourcePath: pickedFile.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(toolbarTitle: 'Crop Photo'),
-        IOSUiSettings(title: 'Crop Photo'),
-      ],
-    );
+      CroppedFile? croppedFile;
+      try {
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path,
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+          uiSettings: [
+            AndroidUiSettings(toolbarTitle: 'Crop Photo'),
+            IOSUiSettings(title: 'Crop Photo'),
+          ],
+        );
+      } catch (e) {
+        debugPrint('Crop failed or skipped: $e');
+      }
 
-    if (croppedFile != null) {
-      var file = File(croppedFile.path);
+      final file = croppedFile != null ? File(croppedFile.path) : File(pickedFile.path);
       ref.read(accountNotifierProvider.notifier).onChangedImage(file);
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      AppSnackBar.show('Gagal memilih gambar');
     }
   }
 
   void updatedUser() async {
+    // Sync controller values to notifier state
+    final name = nameController.text.trim();
+    if (name.isNotEmpty) {
+      ref.read(accountNotifierProvider.notifier).onChangedName(name);
+    }
+    final email = emailController.text.trim();
+    if (email.isNotEmpty) {
+      ref.read(accountNotifierProvider.notifier).onChangedEmail(email);
+    }
+    final phone = phoneController.text.trim();
+    if (phone.isNotEmpty) {
+      ref.read(accountNotifierProvider.notifier).onChangedPhone(phone);
+    }
+
     final code = storeCodeController.text.trim().toUpperCase().replaceAll(' ', '-');
     if (code.isNotEmpty) {
       await ref.read(storeNotifierProvider.notifier).setStoreCode(code);
@@ -94,7 +116,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       AppSnackBar.show('Profile updated');
 
       // Refresh user data
-      ref.read(mainNotifierProvider.notifier).getAndSyncAllUserData();
+      try {
+        ref.read(mainNotifierProvider.notifier).getAndSyncAllUserData();
+      } catch (_) {}
     } else {
       AppDialog.showError(error: res.error.toString());
     }
@@ -163,7 +187,6 @@ class _ImageSection extends ConsumerWidget {
               onTap: onTapImage,
               child: AppImage(
                 image: imageFile?.path ?? imageUrl ?? '',
-                imgProvider: imageFile != null ? ImgProvider.fileImage : ImgProvider.networkImage,
                 width: 100,
                 height: 100,
                 borderRadius: BorderRadius.circular(AppSizes.radius),

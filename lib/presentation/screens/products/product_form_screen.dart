@@ -62,29 +62,48 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   void onTapImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
-    );
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+      );
 
-    if (pickedFile == null) return;
+      if (pickedFile == null) return;
 
-    CroppedFile? croppedFile = await ImageCropper().cropImage(
-      sourcePath: pickedFile.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(toolbarTitle: 'Crop Photo'),
-        IOSUiSettings(title: 'Crop Photo'),
-      ],
-    );
+      CroppedFile? croppedFile;
+      try {
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path,
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+          uiSettings: [
+            AndroidUiSettings(toolbarTitle: 'Crop Photo'),
+            IOSUiSettings(title: 'Crop Photo'),
+          ],
+        );
+      } catch (e) {
+        debugPrint('Crop failed or skipped: $e');
+      }
 
-    if (croppedFile != null) {
-      var file = File(croppedFile.path);
+      final file = croppedFile != null ? File(croppedFile.path) : File(pickedFile.path);
       ref.read(productFormNotifierProvider.notifier).onChangedImage(file);
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      AppSnackBar.show('Gagal memilih gambar');
     }
   }
 
+  void _syncControllersToState() {
+    final notifier = ref.read(productFormNotifierProvider.notifier);
+    notifier.onChangedName(nameController.text.trim());
+    notifier.onChangedCategory(categoryController.text.trim());
+    notifier.onChangedPrice(priceController.text.trim());
+    notifier.onChangedStock(stockController.text.trim());
+    notifier.onChangedDesc(descController.text.trim());
+  }
+
   void createProduct() async {
+    _syncControllersToState();
+
     var res = await AppDialog.showProgress(() {
       return ref.read(productFormNotifierProvider.notifier).createProduct();
     });
@@ -99,6 +118,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   void updatedProduct() async {
+    _syncControllersToState();
+
     var res = await AppDialog.showProgress(() {
       return ref.read(productFormNotifierProvider.notifier).updatedProduct(widget.id!);
     });
@@ -207,7 +228,6 @@ class _ImageSection extends ConsumerWidget {
               onTap: onTapImage,
               child: AppImage(
                 image: imageFile?.path ?? imageUrl ?? '',
-                imgProvider: imageFile != null ? ImgProvider.fileImage : ImgProvider.networkImage,
                 width: 100,
                 height: 100,
                 borderRadius: BorderRadius.circular(AppSizes.radius),

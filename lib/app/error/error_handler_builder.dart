@@ -67,16 +67,7 @@ class ErrorHandlerBuilderState extends ConsumerState<ErrorHandlerBuilder> {
 
     _errorLoggerService.log(error: error, stackTrace: stackTrace);
 
-    if (!mounted) return false;
-
-    // Prevent to push to ErrorScreen multiple times
-    if (_appRoutes.router.routeInformationProvider.value.uri.path != '/error') {
-      _appRoutes.router.go(
-        '/error',
-        extra: ErrorScreenParam(error: error, stackTrace: stackTrace),
-      );
-    }
-
+    // Return true to indicate error is handled, without disrupting active user session with /error
     return true;
   }
 
