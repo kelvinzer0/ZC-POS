@@ -329,7 +329,7 @@ class PrinterService {
             ),
           ]);
           if (product.notes != null && product.notes!.trim().isNotEmpty) {
-            ticket.text('  * Note: ${product.notes!.trim()}');
+            ticket.text('  Catatan: ${product.notes!.trim()}');
           }
         }
       }
@@ -402,15 +402,17 @@ class PrinterService {
     try {
       final ticket = await Ticket.create(paperSize);
 
+      ticket.separator(char: '=');
       ticket.text(
-        '*** KITCHEN TICKET ***',
+        'KITCHEN TICKET',
         align: PrintAlign.center,
         style: const PrintTextStyle(
           bold: true,
           height: TextSize.size2,
-          width: TextSize.size2,
+          width: TextSize.size1,
         ),
       );
+      ticket.separator(char: '=');
       ticket.emptyLines();
 
       final date = DateTimeFormatter.slashDateShortedYearWithClock(
@@ -444,7 +446,7 @@ class PrinterService {
             ),
           ]);
           if (product.notes != null && product.notes!.trim().isNotEmpty) {
-            ticket.text('   >> [NOTE]: ${product.notes!.trim()}', style: const PrintTextStyle(bold: true));
+            ticket.text('  Catatan: ${product.notes!.trim()}', style: const PrintTextStyle(bold: true));
           }
         }
       }
@@ -452,7 +454,7 @@ class PrinterService {
       ticket.separator();
 
       if (transaction.description != null && transaction.description!.trim().isNotEmpty) {
-        ticket.text('NOTES SEMUA PESANAN:', style: const PrintTextStyle(bold: true));
+        ticket.text('Catatan Pesanan:', style: const PrintTextStyle(bold: true));
         ticket.text(transaction.description!.trim());
         ticket.emptyLines();
       }
