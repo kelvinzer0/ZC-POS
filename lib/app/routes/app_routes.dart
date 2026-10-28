@@ -14,6 +14,7 @@ import '../../presentation/screens/main/main_screen.dart';
 import '../../presentation/screens/products/product_detail_screen.dart';
 import '../../presentation/screens/products/product_form_screen.dart';
 import '../../presentation/screens/products/products_screen.dart';
+import '../../presentation/screens/reports/reports_screen.dart';
 import '../../presentation/screens/transactions/transaction_detail_screen.dart';
 import '../../presentation/screens/transactions/transactions_screen.dart';
 import '../../presentation/screens/welcome/welcome_screen.dart';
@@ -120,6 +121,7 @@ class AppRoutes {
         _home(),
         _products(),
         _transactions(),
+        _reports(),
         _account(),
       ],
     );
@@ -163,6 +165,17 @@ class AppRoutes {
       routes: [
         _transactionDetail(),
       ],
+    );
+  }
+
+  GoRoute _reports() {
+    return GoRoute(
+      path: '/reports',
+      pageBuilder: (context, state) {
+        return const NoTransitionPage<void>(
+          child: ReportsScreen(),
+        );
+      },
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/themes/app_sizes.dart';
 import '../../providers/transactions/transactions_notifier.dart';
@@ -60,6 +61,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         title: const Text('Transactions'),
         elevation: 0,
         shadowColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart_rounded),
+            tooltip: 'Laporan Penjualan',
+            onPressed: () => context.go('/reports'),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(transactionsNotifierProvider.notifier).getAllTransactions(),

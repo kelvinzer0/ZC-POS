@@ -383,9 +383,11 @@ class PrinterService {
         size: QRSize.size3,
       );
       ticket.emptyLines();
-      ticket.text('Thank you for your order! ❤️', align: PrintAlign.center);
-      ticket.text('Loved the food? ⭐ Leave us a review!', align: PrintAlign.center);
-      ticket.text('Scan the QR code.', align: PrintAlign.center);
+      ticket.text('Thank you for your order!', align: PrintAlign.center);
+      ticket.text(
+        'Loved the food? Leave us a 5-star review via QR code.',
+        align: PrintAlign.center,
+      );
       ticket.cut(linesBefore: 2);
 
       return await printTicket(ticket);
@@ -457,6 +459,78 @@ class PrinterService {
         ticket.text('Catatan Pesanan:', style: const PrintTextStyle(bold: true));
         ticket.text(transaction.description!.trim());
         ticket.emptyLines();
+      }
+
+      ticket.cut(linesBefore: 2);
+
+      return await printTicket(ticket);
+    } catch (e) {
+      return Result.failure(error: e.toString());
+    }
+  }
+
+  Future<Result<void>> printSalesReport({
+    required String periodTitle,
+    required int totalSales,
+    required int totalTransactions,
+    required int totalItemsSold,
+    required Map<String, int> paymentBreakdown,
+    required Map<String, int> channelBreakdown,
+    required List<MapEntry<String, int>> topProducts,
+  }) async {
+    try {
+      final ticket = await Ticket.create(paperSize);
+
+      ticket.separator(char: '=');
+      ticket.text(
+        'LAPORAN PENJUALAN',
+        align: PrintAlign.center,
+        style: const PrintTextStyle(
+          bold: true,
+          height: TextSize.size2,
+          width: TextSize.size1,
+        ),
+      );
+      ticket.separator(char: '=');
+      ticket.emptyLines();
+
+      final now = DateTimeFormatter.slashDateShortedYearWithClock(
+        DateTime.now().toIso8601String(),
+      );
+
+      ticket.text('Periode: $periodTitle');
+      ticket.text('Waktu Cetak: $now');
+      ticket.separator();
+
+      ticket.text('RINGKASAN', style: const PrintTextStyle(bold: true));
+      ticket.text('Total Transaksi : $totalTransactions');
+      ticket.text('Produk Terjual  : $totalItemsSold pcs');
+      ticket.text('TOTAL OMZET     : ${CurrencyFormatter.format(totalSales)}', style: const PrintTextStyle(bold: true));
+      ticket.separator();
+
+      if (paymentBreakdown.isNotEmpty) {
+        ticket.text('METODE PEMBAYARAN', style: const PrintTextStyle(bold: true));
+        paymentBreakdown.forEach((method, amount) {
+          ticket.text('${method.toUpperCase()} : ${CurrencyFormatter.format(amount)}');
+        });
+        ticket.separator();
+      }
+
+      if (channelBreakdown.isNotEmpty) {
+        ticket.text('SALURAN PENJUALAN', style: const PrintTextStyle(bold: true));
+        channelBreakdown.forEach((channel, amount) {
+          ticket.text('${channel.toUpperCase()} : ${CurrencyFormatter.format(amount)}');
+        });
+        ticket.separator();
+      }
+
+      if (topProducts.isNotEmpty) {
+        ticket.text('PRODUK TERLARIS', style: const PrintTextStyle(bold: true));
+        for (int i = 0; i < topProducts.length && i < 5; i++) {
+          final entry = topProducts[i];
+          ticket.text('${i + 1}. ${entry.key} (${entry.value} pcs)');
+        }
+        ticket.separator();
       }
 
       ticket.cut(linesBefore: 2);
