@@ -126,6 +126,22 @@ class _BodyState extends ConsumerState<_Body> {
   String selectedCategory = 'Semua';
 
   @override
+  void initState() {
+    super.initState();
+    widget.searchFieldController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.searchFieldController.removeListener(_onSearchChanged);
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final allProducts = ref.watch(productsNotifierProvider.select((p) => p.allProducts));
     final isLoadingMore = ref.watch(productsNotifierProvider.select((p) => p.isLoadingMore));
@@ -140,14 +156,17 @@ class _BodyState extends ConsumerState<_Body> {
       categories.addAll(cats);
     }
 
-    final displayedProducts = allProducts == null
-        ? null
-        : selectedCategory == 'Semua'
-            ? allProducts
-            : allProducts.where((p) {
-                final cat = p.category.trim().isEmpty ? 'General' : p.category.trim();
-                return cat.toLowerCase() == selectedCategory.toLowerCase();
-              }).toList();
+    final searchQuery = widget.searchFieldController.text.trim().toLowerCase();
+
+    final displayedProducts = allProducts?.where((p) {
+      final cat = p.category.trim().isEmpty ? 'General' : p.category.trim();
+      final matchesCategory = selectedCategory == 'Semua' || cat.toLowerCase() == selectedCategory.toLowerCase();
+      final matchesSearch = searchQuery.isEmpty ||
+          p.name.toLowerCase().contains(searchQuery) ||
+          cat.toLowerCase().contains(searchQuery) ||
+          '${p.id}'.contains(searchQuery);
+      return matchesCategory && matchesSearch;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -488,13 +507,16 @@ class _SearchField extends ConsumerWidget {
       hintText: 'Search Products...',
       type: AppTextFieldType.search,
       textInputAction: TextInputAction.search,
+      onChanged: (_) {},
       onEditingComplete: () {
         FocusScope.of(context).unfocus();
         ref.read(productsNotifierProvider.notifier).resetProducts();
         ref.read(productsNotifierProvider.notifier).getAllProducts(contains: controller.text);
       },
       onTapClearButton: () {
-        ref.read(productsNotifierProvider.notifier).getAllProducts(contains: controller.text);
+        controller.clear();
+        ref.read(productsNotifierProvider.notifier).resetProducts();
+        ref.read(productsNotifierProvider.notifier).getAllProducts();
       },
     );
   }

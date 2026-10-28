@@ -35,6 +35,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   @override
   void initState() {
     scrollController.addListener(scrollListener);
+    searchFieldController.addListener(_onSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(productsNotifierProvider.notifier).getAllProducts();
     });
@@ -44,9 +45,14 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   @override
   void dispose() {
     scrollController.removeListener(scrollListener);
+    searchFieldController.removeListener(_onSearchChanged);
     scrollController.dispose();
     searchFieldController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {});
   }
 
   void scrollListener() async {
@@ -312,14 +318,17 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
       categories.addAll(cats);
     }
 
-    final displayedProducts = allProducts == null
-        ? null
-        : selectedCategory == 'Semua'
-            ? allProducts
-            : allProducts.where((p) {
-                final cat = p.category.trim().isEmpty ? 'General' : p.category.trim();
-                return cat.toLowerCase() == selectedCategory.toLowerCase();
-              }).toList();
+    final searchQuery = searchFieldController.text.trim().toLowerCase();
+
+    final displayedProducts = allProducts?.where((p) {
+      final cat = p.category.trim().isEmpty ? 'General' : p.category.trim();
+      final matchesCategory = selectedCategory == 'Semua' || cat.toLowerCase() == selectedCategory.toLowerCase();
+      final matchesSearch = searchQuery.isEmpty ||
+          p.name.toLowerCase().contains(searchQuery) ||
+          cat.toLowerCase().contains(searchQuery) ||
+          '${p.id}'.contains(searchQuery);
+      return matchesCategory && matchesSearch;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -534,13 +543,16 @@ class _SearchField extends ConsumerWidget {
       hintText: 'Search Products...',
       type: AppTextFieldType.search,
       textInputAction: TextInputAction.search,
+      onChanged: (_) {},
       onEditingComplete: () {
         FocusScope.of(context).unfocus();
         ref.read(productsNotifierProvider.notifier).resetProducts();
         ref.read(productsNotifierProvider.notifier).getAllProducts(contains: controller.text);
       },
       onTapClearButton: () {
-        ref.read(productsNotifierProvider.notifier).getAllProducts(contains: controller.text);
+        controller.clear();
+        ref.read(productsNotifierProvider.notifier).resetProducts();
+        ref.read(productsNotifierProvider.notifier).getAllProducts();
       },
     );
   }

@@ -24,6 +24,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   @override
   void initState() {
     scrollController.addListener(scrollListener);
+    searchFieldController.addListener(_onSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
     });
@@ -33,9 +34,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   @override
   void dispose() {
     scrollController.removeListener(scrollListener);
+    searchFieldController.removeListener(_onSearchChanged);
     scrollController.dispose();
     searchFieldController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {});
   }
 
   void scrollListener() async {
@@ -55,6 +61,23 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget build(BuildContext context) {
     final allTransactions = ref.watch(transactionsNotifierProvider.select((s) => s.allTransactions));
     final isLoadingMore = ref.watch(transactionsNotifierProvider.select((s) => s.isLoadingMore));
+
+    final searchQuery = searchFieldController.text.trim().toLowerCase();
+    final displayedTransactions = allTransactions?.where((t) {
+      if (searchQuery.isEmpty) return true;
+      final idStr = '${t.id}';
+      final description = t.description?.toLowerCase() ?? '';
+      final customerName = t.customerName?.toLowerCase() ?? '';
+      final channel = t.channel.toLowerCase();
+      final paymentMethod = t.paymentMethod.toLowerCase();
+      final totalAmount = '${t.totalAmount}';
+      return idStr.contains(searchQuery) ||
+          description.contains(searchQuery) ||
+          customerName.contains(searchQuery) ||
+          channel.contains(searchQuery) ||
+          paymentMethod.contains(searchQuery) ||
+          totalAmount.contains(searchQuery);
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -76,7 +99,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           child: CustomScrollView(
             controller: scrollController,
             // Disable scroll when data is null or empty
-            physics: (allTransactions?.isEmpty ?? true) ? const NeverScrollableScrollPhysics() : null,
+            physics: (displayedTransactions?.isEmpty ?? true) ? const NeverScrollableScrollPhysics() : null,
             slivers: [
               SliverAppBar(
                 floating: true,
@@ -91,7 +114,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               ),
               SliverLayoutBuilder(
                 builder: (context, constraint) {
-                  if (allTransactions == null) {
+                  if (displayedTransactions == null) {
                     return const SliverFillRemaining(
                       hasScrollBody: false,
                       fillOverscroll: true,
@@ -99,12 +122,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     );
                   }
 
-                  if (allTransactions.isEmpty) {
-                    return const SliverFillRemaining(
+                  if (displayedTransactions.isEmpty) {
+                    return SliverFillRemaining(
                       hasScrollBody: false,
                       fillOverscroll: true,
                       child: AppEmptyState(
-                        subtitle: 'No transaction available',
+                        subtitle: searchQuery.isNotEmpty
+                            ? 'No transaction matching "$searchQuery"'
+                            : 'No transaction available',
                       ),
                     );
                   }
@@ -112,9 +137,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   return SliverPadding(
                     padding: const EdgeInsets.fromLTRB(AppSizes.padding, 2, AppSizes.padding, AppSizes.padding),
                     sliver: SliverList.builder(
-                      itemCount: allTransactions.length,
+                      itemCount: displayedTransactions.length,
                       itemBuilder: (context, i) {
-                        return TransactionCard(transaction: allTransactions[i]);
+                        return TransactionCard(transaction: displayedTransactions[i]);
                       },
                     ),
                   );
@@ -143,13 +168,16 @@ class _SearchField extends ConsumerWidget {
       hintText: 'Search Transaction ID...',
       type: AppTextFieldType.search,
       textInputAction: TextInputAction.search,
+      onChanged: (_) {},
       onEditingComplete: () {
         FocusScope.of(context).unfocus();
         ref.read(transactionsNotifierProvider.notifier).resetTransactions();
         ref.read(transactionsNotifierProvider.notifier).getAllTransactions(contains: controller.text);
       },
       onTapClearButton: () {
-        ref.read(transactionsNotifierProvider.notifier).getAllTransactions(contains: controller.text);
+        controller.clear();
+        ref.read(transactionsNotifierProvider.notifier).resetTransactions();
+        ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
       },
     );
   }

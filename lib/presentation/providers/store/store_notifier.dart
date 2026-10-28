@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/di/app_providers.dart';
 import '../account/printer_settings_notifier.dart';
+import '../auth/auth_notifier.dart';
 import '../products/products_notifier.dart';
 import '../theme/theme_notifier.dart';
 import '../transactions/transactions_notifier.dart';
@@ -55,24 +56,39 @@ class StoreNotifier extends Notifier<StoreState> {
     final storeService = ref.read(storeServiceProvider);
     await storeService.setActiveStoreCode(cleanCode);
 
-    // Apply any existing cloud settings from Store/{cleanCode}
-    final applied = await storeService.fetchAndApplyCloudSettings(cleanCode);
-    if (!applied) {
-      // If store does not exist in cloud yet, push current local settings
-      await storeService.syncSettingsToCloud(cleanCode);
+    final authState = ref.read(authNotifierProvider);
+    if (!authState.isAuthenticated) {
+      state = state.copyWith(
+        activeStoreCode: cleanCode,
+        isSyncing: false,
+      );
+      return;
     }
 
+    // Apply any existing cloud settings from Store/{cleanCode}
+    try {
+      final applied = await storeService.fetchAndApplyCloudSettings(cleanCode);
+      if (!applied) {
+        // If store does not exist in cloud yet, push current local settings
+        await storeService.syncSettingsToCloud(cleanCode);
+      }
+    } catch (_) {}
+
     // Refresh logo provider
-    ref.read(receiptLogoProvider.notifier).updateLogo(
-      ref.read(printerServiceProvider).receiptLogoPath,
-    );
+    try {
+      ref.read(receiptLogoProvider.notifier).updateLogo(
+        ref.read(printerServiceProvider).receiptLogoPath,
+      );
+    } catch (_) {}
 
     // Refresh theme provider
     ref.invalidate(themeNotifierProvider);
 
     // Reload products & transactions for the new store
-    await ref.read(productsNotifierProvider.notifier).getAllProducts();
-    await ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
+    try {
+      await ref.read(productsNotifierProvider.notifier).getAllProducts();
+      await ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
+    } catch (_) {}
 
     state = state.copyWith(
       activeStoreCode: cleanCode,

@@ -43,7 +43,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Future<void> _onSignIn() async {
     final code = _storeCodeController.text.trim().toUpperCase().replaceAll(' ', '-');
     if (code.isNotEmpty) {
-      await ref.read(storeNotifierProvider.notifier).setStoreCode(code);
+      await ref.read(storeServiceProvider).setActiveStoreCode(code);
     }
 
     final res = await AppDialog.showProgress(() async {
@@ -51,6 +51,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     });
 
     if (res.isSuccess) {
+      if (code.isNotEmpty) {
+        await ref.read(storeNotifierProvider.notifier).setStoreCode(code);
+      }
       ref.read(appRoutesProvider).router.refresh();
     } else {
       AppDialog.showError(error: res.error?.toString());

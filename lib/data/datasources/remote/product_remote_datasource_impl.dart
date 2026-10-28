@@ -113,13 +113,30 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
           ? _firebaseFirestore.collection('Product').where('storeCode', isEqualTo: storeCode)
           : _firebaseFirestore.collection('Product').where('createdById', isEqualTo: userId);
 
-      if (contains != null && contains.isNotEmpty) {
-        query = query.where('name', arrayContains: contains);
+      query = query.orderBy(orderBy, descending: sortBy == 'DESC');
+
+      if (contains != null && contains.trim().isNotEmpty) {
+        final queryText = contains.trim().toLowerCase();
+        final rawProducts = await query.get();
+        var products = rawProducts.docs
+            .map((e) => ProductModel.fromJson(e.data()))
+            .where((p) {
+              return p.name.toLowerCase().contains(queryText) ||
+                  p.category.toLowerCase().contains(queryText) ||
+                  '${p.id}'.contains(queryText);
+            })
+            .toList();
+
+        if (offset != null && offset > 0) {
+          products = products.skip(offset).toList();
+        }
+        if (products.length > limit) {
+          products = products.take(limit).toList();
+        }
+        return Result.success(data: products);
       }
 
-      query = query
-          .orderBy(orderBy, descending: sortBy == 'DESC')
-          .limit(limit);
+      query = query.limit(limit);
 
       if (offset != null) {
         DocumentSnapshot<Object?>? lastSnapshot;

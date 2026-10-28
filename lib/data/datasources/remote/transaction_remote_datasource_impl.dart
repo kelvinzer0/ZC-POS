@@ -274,13 +274,55 @@ class TransactionRemoteDatasourceImpl extends TransactionDatasource {
           ? _firebaseFirestore.collection('Transaction').where('storeCode', isEqualTo: storeCode)
           : _firebaseFirestore.collection('Transaction').where('createdById', isEqualTo: userId);
 
-      if (contains != null && contains.isNotEmpty) {
-        query = query.where('id', arrayContains: contains);
+      query = query.orderBy(orderBy, descending: sortBy == 'DESC');
+
+      if (contains != null && contains.trim().isNotEmpty) {
+        final queryText = contains.trim().toLowerCase();
+        final rawTransactions = await query.get();
+        var transactions = rawTransactions.docs
+            .map((e) => TransactionModel.fromJson(e.data()))
+            .where((t) {
+              final idStr = '${t.id}';
+              final description = t.description?.toLowerCase() ?? '';
+              final customerName = t.customerName?.toLowerCase() ?? '';
+              final channel = t.channel.toLowerCase();
+              final paymentMethod = t.paymentMethod.toLowerCase();
+              final totalAmount = '${t.totalAmount}';
+              return idStr.contains(queryText) ||
+                  description.contains(queryText) ||
+                  customerName.contains(queryText) ||
+                  channel.contains(queryText) ||
+                  paymentMethod.contains(queryText) ||
+                  totalAmount.contains(queryText);
+            })
+            .toList();
+
+        if (offset != null && offset > 0) {
+          transactions = transactions.skip(offset).toList();
+        }
+        if (transactions.length > limit) {
+          transactions = transactions.take(limit).toList();
+        }
+
+        // Get user
+        var rawUser = await _firebaseFirestore.collection('User').doc(userId).get();
+        var user = rawUser.data() != null ? UserModel.fromJson(rawUser.data()!) : null;
+
+        for (var transaction in transactions) {
+          var rawOrderedProducts = await _firebaseFirestore
+              .collection('OrderedProduct')
+              .where('transactionId', isEqualTo: transaction.id)
+              .get();
+
+          var orderedProducts = rawOrderedProducts.docs.map((e) => OrderedProductModel.fromJson(e.data())).toList();
+          transaction.orderedProducts = orderedProducts;
+          transaction.createdBy = user;
+        }
+
+        return Result.success(data: transactions);
       }
 
-      query = query
-          .orderBy(orderBy, descending: sortBy == 'DESC')
-          .limit(limit);
+      query = query.limit(limit);
 
       if (offset != null) {
         DocumentSnapshot<Object?>? lastSnapshot;
