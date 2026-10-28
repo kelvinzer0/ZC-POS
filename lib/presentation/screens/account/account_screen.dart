@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/themes/app_sizes.dart';
+import '../../providers/account/printer_settings_notifier.dart';
 import '../../providers/auth/auth_notifier.dart';
 import '../../providers/main/main_notifier.dart';
 import '../../providers/theme/theme_notifier.dart';
@@ -41,18 +44,30 @@ class _UserInfo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(mainNotifierProvider.select((p) => p.user));
+    final receiptLogo = ref.watch(receiptLogoProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSizes.padding),
       child: Column(
         children: [
-          AppImage(
-            image: user?.imageUrl ?? '',
-            width: 120,
-            height: 120,
-            borderRadius: BorderRadius.circular(100),
-            backgroundColor: Theme.of(context).colorScheme.surface,
-          ),
+          if (receiptLogo != null && File(receiptLogo).existsSync())
+            ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: Image.file(
+                File(receiptLogo),
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            AppImage(
+              image: user?.imageUrl ?? '',
+              width: 120,
+              height: 120,
+              borderRadius: BorderRadius.circular(100),
+              backgroundColor: Theme.of(context).colorScheme.surface,
+            ),
           const SizedBox(height: AppSizes.padding),
           Text(
             user?.name ?? '(No Name)',

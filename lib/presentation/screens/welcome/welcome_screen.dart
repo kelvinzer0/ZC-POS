@@ -1,8 +1,7 @@
-import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/assets/assets.dart';
 import '../../../core/themes/app_sizes.dart';
+import '../../widgets/app_logo.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -26,9 +25,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const AppImage(
-            image: Assets.welcome,
-            imgProvider: ImgProvider.assetImage,
+          const AppLogo(
+            width: 180,
+            height: 180,
           ),
           const SizedBox(height: AppSizes.padding),
           Text(

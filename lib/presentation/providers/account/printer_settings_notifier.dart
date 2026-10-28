@@ -6,6 +6,21 @@ import '../../../core/constants/constants.dart';
 import '../../widgets/app_snack_bar.dart';
 import 'printer_settings_state.dart';
 
+final receiptLogoProvider = NotifierProvider<ReceiptLogoNotifier, String?>(
+  ReceiptLogoNotifier.new,
+);
+
+class ReceiptLogoNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    return ref.watch(printerServiceProvider).receiptLogoPath;
+  }
+
+  void updateLogo(String? path) {
+    state = path;
+  }
+}
+
 final printerSettingsNotifierProvider = NotifierProvider.autoDispose<PrinterSettingsNotifier, PrinterSettingsState>(
   PrinterSettingsNotifier.new,
 );
@@ -30,6 +45,7 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
 
   Future<void> setReceiptLogoPath(String? path) async {
     await ref.read(printerServiceProvider).setReceiptLogoPath(path);
+    ref.read(receiptLogoProvider.notifier).updateLogo(path);
     state = state.copyWith(
       receiptLogoPath: path,
       clearReceiptLogo: path == null,

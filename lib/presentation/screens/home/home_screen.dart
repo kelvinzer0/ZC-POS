@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +8,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import '../../../core/themes/app_sizes.dart';
 import '../../../domain/entities/product_entity.dart';
+import '../../providers/account/printer_settings_notifier.dart';
 import '../../providers/home/home_notifier.dart';
 import '../../providers/main/main_notifier.dart';
 import '../../providers/products/products_notifier.dart';
@@ -314,20 +317,35 @@ class _Title extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(mainNotifierProvider.select((p) => p.user));
+    final receiptLogo = ref.watch(receiptLogoProvider);
 
     return Row(
       children: [
-        AppImage(
-          image: user?.imageUrl ?? '',
-          borderRadius: BorderRadius.circular(100),
-          width: 30,
-          height: 30,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          errorWidget: Icon(
-            Icons.person,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        if (receiptLogo != null && File(receiptLogo).existsSync())
+          Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: Image.file(
+                File(receiptLogo),
+                width: 30,
+                height: 30,
+                fit: BoxFit.cover,
+              ),
+            ),
+          )
+        else
+          AppImage(
+            image: user?.imageUrl ?? '',
+            borderRadius: BorderRadius.circular(100),
+            width: 30,
+            height: 30,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            errorWidget: Icon(
+              Icons.person,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
           ),
-        ),
         const SizedBox(width: 6),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

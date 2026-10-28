@@ -1,13 +1,12 @@
-import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/app_providers.dart';
-import '../../../../core/assets/assets.dart';
 import '../../../../core/themes/app_sizes.dart';
 import '../../../providers/auth/auth_notifier.dart';
 import '../../../widgets/app_button.dart';
 import '../../../widgets/app_dialog.dart';
+import '../../../widgets/app_logo.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
@@ -40,9 +39,9 @@ class _WelcomeMessage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const AppImage(
-              image: Assets.welcome,
-              imgProvider: ImgProvider.assetImage,
+            const AppLogo(
+              width: 180,
+              height: 180,
             ),
             const SizedBox(height: AppSizes.padding),
             Text(

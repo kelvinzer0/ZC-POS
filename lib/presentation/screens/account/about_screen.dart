@@ -1,10 +1,9 @@
-import 'package:app_image/app_image.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../../core/assets/assets.dart';
 import '../../../core/themes/app_sizes.dart';
 import '../../../core/utilities/external_launcher.dart';
+import '../../widgets/app_logo.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -47,10 +46,9 @@ class _AboutScreenState extends State<AboutScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const AppImage(
-                image: Assets.welcome,
-                imgProvider: ImgProvider.assetImage,
+              const AppLogo(
                 width: 150,
+                height: 150,
               ),
               const SizedBox(height: AppSizes.padding),
               Text(
