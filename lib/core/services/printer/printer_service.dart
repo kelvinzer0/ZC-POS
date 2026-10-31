@@ -314,53 +314,16 @@ class PrinterService {
 
       ticket.separator();
 
-      ticket.row([
-        PrintColumn(
-          text: 'Item',
-          flex: 2,
-          style: const PrintTextStyle(bold: true),
-        ),
-        PrintColumn(
-          text: 'Qty',
-          flex: 1,
-          align: PrintAlign.center,
-          style: const PrintTextStyle(bold: true),
-        ),
-        PrintColumn(
-          text: 'Price',
-          flex: 2,
-          align: PrintAlign.right,
-          style: const PrintTextStyle(bold: true),
-        ),
-        PrintColumn(
-          text: 'Subtotal',
-          flex: 2,
-          align: PrintAlign.right,
-          style: const PrintTextStyle(bold: true),
-        ),
-      ]);
-      ticket.separator();
-
       if (transaction.orderedProducts != null) {
         for (final product in transaction.orderedProducts!) {
+          ticket.text(product.name);
           ticket.row([
             PrintColumn(
-              text: product.name,
-              flex: 2,
+              text: '  ${product.quantity} x ${CurrencyFormatter.withoutSymbol(product.price).trim()}',
+              flex: 3,
             ),
             PrintColumn(
-              text: '${product.quantity}',
-              flex: 1,
-              align: PrintAlign.center,
-              style: const PrintTextStyle(),
-            ),
-            PrintColumn(
-              text: CurrencyFormatter.format(product.price),
-              flex: 2,
-              align: PrintAlign.right,
-            ),
-            PrintColumn(
-              text: CurrencyFormatter.format(product.price * product.quantity),
+              text: CurrencyFormatter.withoutSymbol(product.price * product.quantity).trim(),
               flex: 2,
               align: PrintAlign.right,
             ),

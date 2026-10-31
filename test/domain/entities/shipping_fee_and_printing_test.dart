@@ -1,3 +1,4 @@
+import 'package:flutter_pos/core/utilities/currency_formatter.dart';
 import 'package:flutter_pos/data/models/ordered_product_model.dart';
 import 'package:flutter_pos/data/models/product_model.dart';
 import 'package:flutter_pos/data/models/transaction_model.dart';
@@ -192,6 +193,30 @@ void main() {
       // Adjust name
       notifier.onChangedOrderedProductName(0, 'Ayam Geprek Jumbo + Sambal Ekstra');
       expect(container.read(homeNotifierProvider).orderedProducts.first.name, 'Ayam Geprek Jumbo + Sambal Ekstra');
+    });
+
+    test('Row-oriented receipt item string formatting matches expected layout', () {
+      const name = 'Nasi Goreng Spesial';
+      const qty = 2;
+      const price = 25000;
+      final priceWithoutSymbol = CurrencyFormatter.withoutSymbol(price).trim();
+      final subtotalWithoutSymbol = CurrencyFormatter.withoutSymbol(price * qty).trim();
+
+      final line1 = name;
+      final line2Left = '  $qty x $priceWithoutSymbol';
+      final line2Right = subtotalWithoutSymbol;
+
+      expect(line1, 'Nasi Goreng Spesial');
+      expect(line2Left, '  2 x 25.000');
+      expect(line2Right, '50.000');
+
+      // Test with Es Teh Manis
+      const name2 = 'Es Teh Manis';
+      const qty2 = 2;
+      const price2 = 5000;
+      expect(name2, 'Es Teh Manis');
+      expect('  $qty2 x ${CurrencyFormatter.withoutSymbol(price2).trim()}', '  2 x 5.000');
+      expect(CurrencyFormatter.withoutSymbol(price2 * qty2).trim(), '10.000');
     });
   });
 }
