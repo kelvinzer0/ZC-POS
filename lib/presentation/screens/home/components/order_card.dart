@@ -19,6 +19,7 @@ class OrderCard extends StatefulWidget {
   final VoidCallback? onTapRemove;
   final Function(int) onChangedQuantity;
   final Function(int)? onChangedPrice;
+  final Function(String)? onChangedName;
   final String? notes;
   final Function(String?)? onChangedNotes;
 
@@ -33,6 +34,7 @@ class OrderCard extends StatefulWidget {
     this.onTapRemove,
     required this.onChangedQuantity,
     this.onChangedPrice,
+    this.onChangedName,
     this.notes,
     this.onChangedNotes,
   });
@@ -44,11 +46,13 @@ class OrderCard extends StatefulWidget {
 class _OrderCardState extends State<OrderCard> {
   int quantity = 1;
   late int currentPrice;
+  late String currentName;
 
   @override
   void initState() {
     quantity = widget.initialQuantity == 0 ? 1 : widget.initialQuantity;
     currentPrice = widget.price;
+    currentName = widget.name;
     super.initState();
   }
 
@@ -56,7 +60,37 @@ class _OrderCardState extends State<OrderCard> {
   void didUpdateWidget(covariant OrderCard oldWidget) {
     quantity = widget.initialQuantity == 0 ? 1 : widget.initialQuantity;
     currentPrice = widget.price;
+    currentName = widget.name;
     super.didUpdateWidget(oldWidget);
+  }
+
+  void _showEditNameDialog() {
+    final controller = TextEditingController(text: currentName);
+    AppDialog.show(
+      title: 'Ubah Nama Produk',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: AppTextField(
+          controller: controller,
+          labelText: 'Nama Produk',
+          hintText: 'Masukkan nama produk...',
+          autofocus: true,
+        ),
+      ),
+      rightButtonText: 'Simpan',
+      leftButtonText: 'Batal',
+      onTapLeftButton: (context) => context.pop(),
+      onTapRightButton: (context) {
+        final newName = controller.text.trim();
+        if (newName.isNotEmpty) {
+          setState(() {
+            currentName = newName;
+          });
+          widget.onChangedName?.call(newName);
+        }
+        context.pop();
+      },
+    );
   }
 
   void _showEditPriceDialog() {
@@ -137,11 +171,35 @@ class _OrderCardState extends State<OrderCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                    InkWell(
+                      onTap: widget.onChangedName != null ? _showEditNameDialog : null,
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                currentName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            if (widget.onChangedName != null) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.edit_outlined,
+                                size: 14,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Column(

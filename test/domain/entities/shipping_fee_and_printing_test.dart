@@ -164,5 +164,34 @@ void main() {
       final restoredEntity = fromJson.toEntity();
       expect(restoredEntity.imageBase64, 'sample_base64_encoded_string');
     });
+
+    test('HomeNotifier supports adjusting product price and name in cart', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(homeNotifierProvider.notifier);
+
+      const product = ProductEntity(
+        id: 2,
+        name: 'Ayam Geprek',
+        imageUrl: '',
+        stock: 10,
+        price: 20000,
+        category: 'Food',
+        createdById: 'user_1',
+      );
+      notifier.onAddOrderedProduct(product, 1);
+
+      expect(container.read(homeNotifierProvider).orderedProducts.first.name, 'Ayam Geprek');
+      expect(container.read(homeNotifierProvider).orderedProducts.first.price, 20000);
+
+      // Adjust price
+      notifier.onChangedOrderedProductPrice(0, 18000);
+      expect(container.read(homeNotifierProvider).orderedProducts.first.price, 18000);
+
+      // Adjust name
+      notifier.onChangedOrderedProductName(0, 'Ayam Geprek Jumbo + Sambal Ekstra');
+      expect(container.read(homeNotifierProvider).orderedProducts.first.name, 'Ayam Geprek Jumbo + Sambal Ekstra');
+    });
   });
 }

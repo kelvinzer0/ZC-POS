@@ -73,6 +73,9 @@ class _OrderList extends ConsumerWidget {
                 onChangedPrice: (newPrice) {
                   ref.read(homeNotifierProvider.notifier).onChangedOrderedProductPrice(i, newPrice);
                 },
+                onChangedName: (newName) {
+                  ref.read(homeNotifierProvider.notifier).onChangedOrderedProductName(i, newName);
+                },
                 onChangedNotes: (newNotes) {
                   ref.read(homeNotifierProvider.notifier).onChangedOrderedProductNotes(i, newNotes);
                 },

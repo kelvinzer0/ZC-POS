@@ -550,6 +550,7 @@ class _ProductCard extends ConsumerWidget {
 
         int currentQty = homeState.orderedProducts.where((e) => e.productId == product.id).firstOrNull?.quantity ?? 0;
         int currentPrice = product.price;
+        String currentName = product.name;
 
         AppDialog.show(
           title: 'Enter Amount',
@@ -565,6 +566,9 @@ class _ProductCard extends ConsumerWidget {
             onChangedPrice: (val) {
               currentPrice = val;
             },
+            onChangedName: (val) {
+              currentName = val;
+            },
           ),
           rightButtonText: 'Add To Cart',
           leftButtonText: 'Cancel',
@@ -576,6 +580,7 @@ class _ProductCard extends ConsumerWidget {
               product,
               currentQty == 0 ? 1 : currentQty,
               price: currentPrice,
+              name: currentName,
             );
             context.pop();
           },

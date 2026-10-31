@@ -113,10 +113,13 @@ class HomeNotifier extends Notifier<HomeState> {
     state = state.copyWith(isPanelExpanded: val);
   }
 
-  void onAddOrderedProduct(ProductEntity product, int qty, {int? price}) {
+  void onAddOrderedProduct(ProductEntity product, int qty, {int? price, String? name}) {
     final effectivePrice = price ?? product.price;
+    final effectiveName = (name != null && name.trim().isNotEmpty) ? name.trim() : product.name;
     final orderedProducts = [...state.orderedProducts];
-    var currentIndex = orderedProducts.indexWhere((e) => e.productId == product.id && e.price == effectivePrice);
+    var currentIndex = orderedProducts.indexWhere(
+      (e) => e.productId == product.id && e.price == effectivePrice && e.name == effectiveName,
+    );
 
     if (currentIndex != -1) {
       orderedProducts[currentIndex] = orderedProducts[currentIndex].copyWith(quantity: qty);
@@ -126,7 +129,7 @@ class HomeNotifier extends Notifier<HomeState> {
         productId: product.id!,
         quantity: qty,
         stock: product.stock,
-        name: product.name,
+        name: effectiveName,
         imageUrl: product.imageUrl,
         price: effectivePrice,
       );
@@ -159,6 +162,15 @@ class HomeNotifier extends Notifier<HomeState> {
     if (index < 0 || index >= state.orderedProducts.length) return;
     final orderedProducts = [...state.orderedProducts];
     orderedProducts[index] = orderedProducts[index].copyWith(price: newPrice);
+    _persistDraft(state.copyWith(orderedProducts: orderedProducts));
+  }
+
+  void onChangedOrderedProductName(int index, String newName) {
+    if (index < 0 || index >= state.orderedProducts.length) return;
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty) return;
+    final orderedProducts = [...state.orderedProducts];
+    orderedProducts[index] = orderedProducts[index].copyWith(name: trimmed);
     _persistDraft(state.copyWith(orderedProducts: orderedProducts));
   }
 
