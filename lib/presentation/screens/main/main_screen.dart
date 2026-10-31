@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/di/app_providers.dart';
+import '../../../core/themes/app_sizes.dart';
+import '../../providers/auth/auth_notifier.dart';
 import '../../providers/main/main_notifier.dart';
 import '../welcome/welcome_screen.dart';
 
@@ -32,16 +34,38 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final isHasInternet = ref.watch(mainNotifierProvider.select((p) => p.isHasInternet));
     final user = ref.watch(mainNotifierProvider.select((p) => p.user));
 
+    final authUser = ref.watch(authNotifierProvider.select((p) => p.user));
+
     // Display RootScreen when data is being load
     if (!isLoaded) {
       return const WelcomeScreen();
     }
 
-    // User data might still null for the first time app open or login without internet connection
-    // So, throw error with a first time internet error message then the [ErrorScreen] will be shown
-    if (isLoaded && user == null && !isHasInternet) {
-      throw Exception(
-        'No Internet connection! Internet connection is required for the first time app open or user login',
+    // User data might still be null for the first time app open or login without internet connection
+    if (isLoaded && user == null && authUser == null && !isHasInternet) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSizes.padding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.wifi_off_rounded, size: 64, color: Theme.of(context).colorScheme.outline),
+                const SizedBox(height: 16),
+                Text(
+                  'Koneksi Internet Diperlukan',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Koneksi internet diperlukan saat pertama kali membuka aplikasi atau login.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 

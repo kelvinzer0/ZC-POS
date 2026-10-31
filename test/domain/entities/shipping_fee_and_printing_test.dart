@@ -1,4 +1,5 @@
 import 'package:flutter_pos/data/models/ordered_product_model.dart';
+import 'package:flutter_pos/data/models/product_model.dart';
 import 'package:flutter_pos/data/models/transaction_model.dart';
 import 'package:flutter_pos/domain/entities/product_entity.dart';
 import 'package:flutter_pos/domain/entities/transaction_entity.dart';
@@ -114,20 +115,50 @@ void main() {
       expect(notifier.getTotalAmount(), 50000);
     });
 
-    test('PrinterSettingsState supports hideReceiptHeaderTitle and hideReceiptHeaderSubtitle', () {
+    test('PrinterSettingsState supports hideReceiptHeaderTitle, hideReceiptHeaderSubtitle, and receiptReviewMessage', () {
       const state = PrinterSettingsState(
         paperSize: PaperSize.mm58,
         selectedTypes: {},
       );
       expect(state.hideReceiptHeaderTitle, false);
       expect(state.hideReceiptHeaderSubtitle, false);
+      expect(state.hideReceiptReviewMessage, false);
+      expect(state.receiptReviewMessage, 'Loved the food? Leave us a 5-star review via QR code.');
 
       final updated = state.copyWith(
         hideReceiptHeaderTitle: true,
         hideReceiptHeaderSubtitle: true,
+        hideReceiptReviewMessage: true,
+        receiptReviewMessage: 'Terima kasih atas pesanan Anda!',
       );
       expect(updated.hideReceiptHeaderTitle, true);
       expect(updated.hideReceiptHeaderSubtitle, true);
+      expect(updated.hideReceiptReviewMessage, true);
+      expect(updated.receiptReviewMessage, 'Terima kasih atas pesanan Anda!');
+    });
+
+    test('ProductEntity and ProductModel support imageBase64 for cloud sync', () {
+      const entity = ProductEntity(
+        id: 99,
+        createdById: 'user_test',
+        name: 'Es Teh Manis',
+        imageUrl: '/local/path/image.jpg',
+        imageBase64: 'sample_base64_encoded_string',
+        stock: 50,
+        price: 5000,
+      );
+
+      final model = ProductModel.fromEntity(entity);
+      expect(model.imageBase64, 'sample_base64_encoded_string');
+
+      final json = model.toJson();
+      expect(json['imageBase64'], 'sample_base64_encoded_string');
+
+      final fromJson = ProductModel.fromJson(json);
+      expect(fromJson.imageBase64, 'sample_base64_encoded_string');
+
+      final restoredEntity = fromJson.toEntity();
+      expect(restoredEntity.imageBase64, 'sample_base64_encoded_string');
     });
   });
 }

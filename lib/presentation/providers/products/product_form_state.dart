@@ -3,6 +3,7 @@ import 'dart:io';
 class ProductFormState {
   final File? imageFile;
   final String? imageUrl;
+  final String? imageBase64;
   final String? name;
   final int? price;
   final int? stock;
@@ -13,6 +14,7 @@ class ProductFormState {
   const ProductFormState({
     this.imageFile,
     this.imageUrl,
+    this.imageBase64,
     this.name,
     this.price,
     this.stock,
@@ -24,6 +26,7 @@ class ProductFormState {
   ProductFormState copyWith({
     File? imageFile,
     String? imageUrl,
+    String? imageBase64,
     String? name,
     int? price,
     int? stock,
@@ -34,6 +37,7 @@ class ProductFormState {
     return ProductFormState(
       imageFile: imageFile ?? this.imageFile,
       imageUrl: imageUrl ?? this.imageUrl,
+      imageBase64: imageBase64 ?? this.imageBase64,
       name: name ?? this.name,
       price: price ?? this.price,
       stock: stock ?? this.stock,

@@ -17,6 +17,9 @@ class Constants {
   static const String receiptHeaderSubtitleKey = 'receipt_header_subtitle';
   static const String hideReceiptHeaderTitleKey = 'hide_receipt_header_title';
   static const String hideReceiptHeaderSubtitleKey = 'hide_receipt_header_subtitle';
+  static const String receiptReviewMessageKey = 'receipt_review_message';
+  static const String hideReceiptReviewMessageKey = 'hide_receipt_review_message';
+  static const String cartDraftKey = 'cart_draft_key';
   static const String activeStoreCodeKey = 'active_store_code';
 
   static const int minSyncIntervalToleranceForCriticalInMinutes = 5;
@@ -31,5 +34,9 @@ class Constants {
   // Non-critical error libraries that should be logged but not navigate to error screen
   static const nonCriticalErrorLibraries = {
     'image resource service',
+    'widgets library',
+    'rendering library',
+    'services library',
+    'gesture',
   };
 }

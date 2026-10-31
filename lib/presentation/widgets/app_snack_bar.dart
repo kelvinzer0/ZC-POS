@@ -4,28 +4,32 @@ import '../../app/routes/app_routes.dart';
 
 class AppSnackBar {
   static Future<dynamic> show(String message) async {
-    _getMessengerAndTheme.$1.hideCurrentSnackBar();
-    _getMessengerAndTheme.$1.showSnackBar(
+    final pair = _getMessengerAndTheme;
+    if (pair == null) return;
+    pair.$1.hideCurrentSnackBar();
+    pair.$1.showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: _getMessengerAndTheme.$2.colorScheme.tertiary,
+        backgroundColor: pair.$2.colorScheme.tertiary,
       ),
     );
   }
 
   static Future<dynamic> showError(String errorMessage) async {
-    _getMessengerAndTheme.$1.hideCurrentSnackBar();
-    _getMessengerAndTheme.$1.showSnackBar(
+    final pair = _getMessengerAndTheme;
+    if (pair == null) return;
+    pair.$1.hideCurrentSnackBar();
+    pair.$1.showSnackBar(
       SnackBar(
         content: Text(errorMessage),
-        backgroundColor: _getMessengerAndTheme.$2.colorScheme.error,
+        backgroundColor: pair.$2.colorScheme.error,
       ),
     );
   }
 
-  static (ScaffoldMessengerState, ThemeData) get _getMessengerAndTheme {
+  static (ScaffoldMessengerState, ThemeData)? get _getMessengerAndTheme {
     final context = AppRoutes.rootNavigatorKey.currentContext;
-    if (context == null) throw Exception('No context available for snack bar');
+    if (context == null) return null;
 
     final theme = Theme.of(context);
     final messenger = ScaffoldMessenger.of(context);

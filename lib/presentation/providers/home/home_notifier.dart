@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/di/app_providers.dart';
 import '../../../core/common/result.dart';
+import '../../../core/constants/constants.dart';
+import '../../../data/models/ordered_product_model.dart';
 import '../../../domain/entities/ordered_product_entity.dart';
 import '../../../domain/entities/product_entity.dart';
 import '../../../domain/entities/transaction_entity.dart';
@@ -12,14 +16,59 @@ import '../products/products_notifier.dart';
 import '../transactions/transactions_notifier.dart';
 import 'home_state.dart';
 
-final homeNotifierProvider = NotifierProvider.autoDispose<HomeNotifier, HomeState>(
+final homeNotifierProvider = NotifierProvider<HomeNotifier, HomeState>(
   HomeNotifier.new,
 );
 
-class HomeNotifier extends AutoDisposeNotifier<HomeState> {
+class HomeNotifier extends Notifier<HomeState> {
   @override
   HomeState build() {
+    try {
+      final prefs = ref.watch(sharedPreferencesProvider);
+      final draftStr = prefs.getString(Constants.cartDraftKey);
+      if (draftStr != null && draftStr.isNotEmpty) {
+        final Map<String, dynamic> draftMap = jsonDecode(draftStr);
+        final rawProducts = draftMap['orderedProducts'] as List<dynamic>? ?? [];
+        final products = rawProducts
+            .map((p) => OrderedProductModel.fromJson(Map<String, dynamic>.from(p)).toEntity())
+            .toList();
+        return HomeState(
+          orderedProducts: products,
+          shippingFee: draftMap['shippingFee'] as int? ?? 0,
+          receivedAmount: draftMap['receivedAmount'] as int? ?? 0,
+          selectedPaymentMethod: draftMap['selectedPaymentMethod'] as String? ?? 'cash',
+          selectedChannel: draftMap['selectedChannel'] as String? ?? 'offline',
+          customerName: draftMap['customerName'] as String?,
+          description: draftMap['description'] as String?,
+        );
+      }
+    } catch (_) {
+      // Handles uninitialized preferences or unit testing environments
+    }
     return const HomeState();
+  }
+
+  void _persistDraft(HomeState nextState) {
+    state = nextState;
+    try {
+      final prefs = ref.read(sharedPreferencesProvider);
+      if (nextState.orderedProducts.isEmpty) {
+        prefs.remove(Constants.cartDraftKey);
+      } else {
+        final draftMap = {
+          'orderedProducts': nextState.orderedProducts
+              .map((e) => OrderedProductModel.fromEntity(e).toJson())
+              .toList(),
+          'shippingFee': nextState.shippingFee,
+          'receivedAmount': nextState.receivedAmount,
+          'selectedPaymentMethod': nextState.selectedPaymentMethod,
+          'selectedChannel': nextState.selectedChannel,
+          'customerName': nextState.customerName,
+          'description': nextState.description,
+        };
+        prefs.setString(Constants.cartDraftKey, jsonEncode(draftMap));
+      }
+    } catch (_) {}
   }
 
   Future<Result<int>> createTransaction() async {
@@ -83,61 +132,63 @@ class HomeNotifier extends AutoDisposeNotifier<HomeState> {
       orderedProducts.add(order);
     }
 
-    state = state.copyWith(orderedProducts: orderedProducts);
+    _persistDraft(state.copyWith(orderedProducts: orderedProducts));
   }
 
   void onRemoveOrderedProduct(OrderedProductEntity val) {
-    state = state.copyWith(
-      orderedProducts: state.orderedProducts.where((e) => e != val).toList(),
+    _persistDraft(
+      state.copyWith(
+        orderedProducts: state.orderedProducts.where((e) => e != val).toList(),
+      ),
     );
   }
 
   void onRemoveAllOrderedProduct() {
-    state = const HomeState();
+    _persistDraft(const HomeState());
   }
 
   void onChangedOrderedProductQuantity(int index, int value) {
     final orderedProducts = [...state.orderedProducts];
     orderedProducts[index] = orderedProducts[index].copyWith(quantity: value);
-    state = state.copyWith(orderedProducts: orderedProducts);
+    _persistDraft(state.copyWith(orderedProducts: orderedProducts));
   }
 
   void onChangedOrderedProductPrice(int index, int newPrice) {
     if (index < 0 || index >= state.orderedProducts.length) return;
     final orderedProducts = [...state.orderedProducts];
     orderedProducts[index] = orderedProducts[index].copyWith(price: newPrice);
-    state = state.copyWith(orderedProducts: orderedProducts);
+    _persistDraft(state.copyWith(orderedProducts: orderedProducts));
   }
 
   void onChangedOrderedProductNotes(int index, String? notes) {
     if (index < 0 || index >= state.orderedProducts.length) return;
     final orderedProducts = [...state.orderedProducts];
     orderedProducts[index] = orderedProducts[index].copyWith(notes: notes);
-    state = state.copyWith(orderedProducts: orderedProducts);
+    _persistDraft(state.copyWith(orderedProducts: orderedProducts));
   }
 
   void onChangedReceivedAmount(int value) {
-    state = state.copyWith(receivedAmount: value);
+    _persistDraft(state.copyWith(receivedAmount: value));
   }
 
   void onChangedPaymentMethod(String? value) {
-    state = state.copyWith(selectedPaymentMethod: value ?? state.selectedPaymentMethod);
+    _persistDraft(state.copyWith(selectedPaymentMethod: value ?? state.selectedPaymentMethod));
   }
 
   void onChangedChannel(String? value) {
-    state = state.copyWith(selectedChannel: value ?? state.selectedChannel);
+    _persistDraft(state.copyWith(selectedChannel: value ?? state.selectedChannel));
   }
 
   void onChangedCustomerName(String value) {
-    state = state.copyWith(customerName: value);
+    _persistDraft(state.copyWith(customerName: value));
   }
 
   void onChangedDescription(String value) {
-    state = state.copyWith(description: value);
+    _persistDraft(state.copyWith(description: value));
   }
 
   void onChangedShippingFee(int fee) {
-    state = state.copyWith(shippingFee: fee >= 0 ? fee : 0);
+    _persistDraft(state.copyWith(shippingFee: fee >= 0 ? fee : 0));
   }
 
   int getSubtotalAmount() {

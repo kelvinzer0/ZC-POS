@@ -35,7 +35,10 @@ class ProductDetailScreen extends ConsumerWidget {
           }
 
           if (snapshot.hasError) {
-            throw snapshot.error.toString();
+            return AppEmptyState(
+              title: 'Gagal memuat produk',
+              subtitle: snapshot.error.toString(),
+            );
           }
 
           if (snapshot.data == null) {

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS '$productTableName' (
     'createdById' TEXT,
     'name' TEXT,
     'imageUrl' TEXT,
+    'imageBase64' TEXT,
     'stock' INTEGER,
     'sold' INTEGER,
     'price' INTEGER,

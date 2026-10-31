@@ -48,10 +48,21 @@ class ErrorHandlerBuilderState extends ConsumerState<ErrorHandlerBuilder> {
     _errorLoggerService.log(error: flutterError);
 
     if (!mounted) return;
+    if (flutterError.silent) return;
 
     // Skip navigation to error screen for non-critical errors
     final library = flutterError.library?.toLowerCase() ?? '';
     if (Constants.nonCriticalErrorLibraries.any((lib) => library.contains(lib))) {
+      return;
+    }
+
+    final exceptionStr = flutterError.exception.toString().toLowerCase();
+    if (exceptionStr.contains('overflowed') ||
+        exceptionStr.contains('renderflex') ||
+        exceptionStr.contains('image') ||
+        exceptionStr.contains('paint') ||
+        exceptionStr.contains('semantics') ||
+        exceptionStr.contains('gesture')) {
       return;
     }
 

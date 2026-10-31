@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 
 import '../../../app/di/app_providers.dart';
 import '../../../core/common/result.dart';
@@ -28,6 +31,28 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
     throw 'Unauthenticated!';
   }
 
+  Future<String?> _compressImageToBase64(File file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      var decoded = img.decodeImage(bytes);
+      if (decoded != null) {
+        if (decoded.width > 600 || decoded.height > 600) {
+          if (decoded.width >= decoded.height) {
+            decoded = img.copyResize(decoded, width: 600);
+          } else {
+            decoded = img.copyResize(decoded, height: 600);
+          }
+        }
+        final compressed = img.encodeJpg(decoded, quality: 80);
+        return base64Encode(compressed);
+      }
+      return base64Encode(bytes);
+    } catch (e) {
+      debugPrint('Failed to compress image to base64: $e');
+      return null;
+    }
+  }
+
   Future<void> initProductForm(int? productId) async {
     if (productId == null) {
       state = state.copyWith(isLoaded: true);
@@ -43,6 +68,7 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
 
         state = state.copyWith(
           imageUrl: product?.imageUrl,
+          imageBase64: product?.imageBase64,
           name: product?.name,
           price: product?.price,
           stock: product?.stock,
@@ -64,8 +90,10 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       final productRepository = ref.read(productRepositoryProvider);
 
       var imageUrl = state.imageUrl;
+      var imageBase64 = state.imageBase64;
 
       if (state.imageFile != null) {
+        imageBase64 = await _compressImageToBase64(state.imageFile!);
         final res = await UploadProductImageUsecase(storageRepository).call(state.imageFile!.path);
         if (res.isSuccess && res.data != null && res.data!.isNotEmpty) {
           imageUrl = res.data;
@@ -84,6 +112,7 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
         createdById: userId,
         name: resolvedName,
         imageUrl: imageUrl ?? '',
+        imageBase64: imageBase64,
         stock: state.stock ?? 0,
         price: state.price ?? 0,
         category: (state.category == null || state.category!.trim().isEmpty) ? 'General' : state.category!.trim(),
@@ -110,8 +139,10 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       final productRepository = ref.read(productRepositoryProvider);
 
       var imageUrl = state.imageUrl;
+      var imageBase64 = state.imageBase64;
 
       if (state.imageFile != null) {
+        imageBase64 = await _compressImageToBase64(state.imageFile!);
         final res = await UploadProductImageUsecase(storageRepository).call(state.imageFile!.path);
         if (res.isSuccess && res.data != null && res.data!.isNotEmpty) {
           imageUrl = res.data;
@@ -131,6 +162,7 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
         createdById: userId,
         name: resolvedName,
         imageUrl: imageUrl ?? '',
+        imageBase64: imageBase64,
         stock: state.stock ?? 0,
         price: state.price ?? 0,
         category: (state.category == null || state.category!.trim().isEmpty) ? 'General' : state.category!.trim(),

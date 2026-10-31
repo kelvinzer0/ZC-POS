@@ -3,6 +3,7 @@ import 'package:unified_esc_pos_printer/unified_esc_pos_printer.dart';
 
 import '../../../app/di/app_providers.dart';
 import '../../../core/constants/constants.dart';
+import '../../../core/services/printer/printer_service.dart';
 import '../../widgets/app_snack_bar.dart';
 import 'printer_settings_state.dart';
 
@@ -36,6 +37,8 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
       receiptHeaderSubtitle: printerService.receiptHeaderSubtitle,
       hideReceiptHeaderTitle: printerService.hideReceiptHeaderTitle,
       hideReceiptHeaderSubtitle: printerService.hideReceiptHeaderSubtitle,
+      receiptReviewMessage: printerService.receiptReviewMessage,
+      hideReceiptReviewMessage: printerService.hideReceiptReviewMessage,
       selectedTypes: {
         PrinterConnectionType.usb,
         PrinterConnectionType.bluetooth,
@@ -76,6 +79,20 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
   Future<void> setReceiptHeaderSubtitle(String? subtitle) async {
     await ref.read(printerServiceProvider).setReceiptHeaderSubtitle(subtitle);
     state = state.copyWith(receiptHeaderSubtitle: subtitle ?? 'https://github.com/kelvinzer0/ZC-POS');
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> setReceiptReviewMessage(String? message) async {
+    await ref.read(printerServiceProvider).setReceiptReviewMessage(message);
+    state = state.copyWith(
+      receiptReviewMessage: message ?? PrinterService.defaultReviewMessage,
+    );
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> toggleHideReceiptReviewMessage(bool hide) async {
+    await ref.read(printerServiceProvider).setHideReceiptReviewMessage(hide);
+    state = state.copyWith(hideReceiptReviewMessage: hide);
     ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 

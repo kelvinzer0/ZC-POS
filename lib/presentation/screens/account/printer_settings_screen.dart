@@ -58,6 +58,8 @@ class _PrinterSettingsBody extends StatelessWidget {
           _ReceiptHeaderSection(),
           SizedBox(height: AppSizes.padding),
           _ReceiptLogoSection(),
+          SizedBox(height: AppSizes.padding),
+          _ReceiptReviewMessageSection(),
           SizedBox(height: AppSizes.padding * 1.5),
           _DevicesHeader(),
           SizedBox(height: AppSizes.padding),
@@ -355,6 +357,116 @@ class _ReceiptLogoSection extends ConsumerWidget {
     } catch (e) {
       AppSnackBar.showError('Gagal memilih logo: $e');
     }
+  }
+}
+
+class _ReceiptReviewMessageSection extends ConsumerStatefulWidget {
+  const _ReceiptReviewMessageSection();
+
+  @override
+  ConsumerState<_ReceiptReviewMessageSection> createState() => _ReceiptReviewMessageSectionState();
+}
+
+class _ReceiptReviewMessageSectionState extends ConsumerState<_ReceiptReviewMessageSection> {
+  late final TextEditingController _reviewMessageController;
+
+  @override
+  void initState() {
+    super.initState();
+    final message = ref.read(printerSettingsNotifierProvider).receiptReviewMessage;
+    _reviewMessageController = TextEditingController(text: message);
+  }
+
+  @override
+  void dispose() {
+    _reviewMessageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hideReview = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptReviewMessage));
+
+    ref.listen(printerSettingsNotifierProvider.select((s) => s.receiptReviewMessage), (_, next) {
+      if (_reviewMessageController.text != next) {
+        _reviewMessageController.text = next;
+      }
+    });
+
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.padding),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppSizes.radius),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.star_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Pesan Review Bintang 5 di Struk',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Sesuaikan pesan ajakan ulasan bintang 5 atau ucapan terima kasih yang dicetak di bagian bawah struk.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+          ),
+          const SizedBox(height: AppSizes.padding),
+          AppTextField(
+            controller: _reviewMessageController,
+            labelText: 'Pesan Review Bintang 5',
+            hintText: 'Contoh: Loved the food? Leave us a 5-star review via QR code.',
+            onChanged: (v) {
+              ref.read(printerSettingsNotifierProvider.notifier).setReceiptReviewMessage(v);
+            },
+          ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () {
+              ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptReviewMessage(!hideReview);
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: Checkbox(
+                      value: hideReview,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      onChanged: (val) {
+                        if (val != null) {
+                          ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptReviewMessage(val);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sembunyikan Pesan Review di Struk',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: hideReview ? FontWeight.w600 : FontWeight.normal,
+                          color: hideReview ? Theme.of(context).colorScheme.error : null,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

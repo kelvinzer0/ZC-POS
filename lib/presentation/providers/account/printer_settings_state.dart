@@ -12,6 +12,8 @@ class PrinterSettingsState {
   final String receiptHeaderSubtitle;
   final bool hideReceiptHeaderTitle;
   final bool hideReceiptHeaderSubtitle;
+  final String receiptReviewMessage;
+  final bool hideReceiptReviewMessage;
 
   const PrinterSettingsState({
     this.isScanning = false,
@@ -25,6 +27,8 @@ class PrinterSettingsState {
     this.receiptHeaderSubtitle = 'https://github.com/kelvinzer0/ZC-POS',
     this.hideReceiptHeaderTitle = false,
     this.hideReceiptHeaderSubtitle = false,
+    this.receiptReviewMessage = 'Loved the food? Leave us a 5-star review via QR code.',
+    this.hideReceiptReviewMessage = false,
   });
 
   PrinterSettingsState copyWith({
@@ -40,6 +44,8 @@ class PrinterSettingsState {
     String? receiptHeaderSubtitle,
     bool? hideReceiptHeaderTitle,
     bool? hideReceiptHeaderSubtitle,
+    String? receiptReviewMessage,
+    bool? hideReceiptReviewMessage,
   }) {
     return PrinterSettingsState(
       isScanning: isScanning ?? this.isScanning,
@@ -53,6 +59,8 @@ class PrinterSettingsState {
       receiptHeaderSubtitle: receiptHeaderSubtitle ?? this.receiptHeaderSubtitle,
       hideReceiptHeaderTitle: hideReceiptHeaderTitle ?? this.hideReceiptHeaderTitle,
       hideReceiptHeaderSubtitle: hideReceiptHeaderSubtitle ?? this.hideReceiptHeaderSubtitle,
+      receiptReviewMessage: receiptReviewMessage ?? this.receiptReviewMessage,
+      hideReceiptReviewMessage: hideReceiptReviewMessage ?? this.hideReceiptReviewMessage,
     );
   }
 }

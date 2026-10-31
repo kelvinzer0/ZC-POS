@@ -173,6 +173,28 @@ class _AdditionalInfoDialogState extends ConsumerState<_AdditionalInfoDialog> {
     final homeState = ref.watch(homeNotifierProvider);
     final homeNotifier = ref.read(homeNotifierProvider.notifier);
 
+    ref.listen(homeNotifierProvider.select((s) => s.orderedProducts.isEmpty), (_, isEmpty) {
+      if (isEmpty) {
+        _amountController.clear();
+        _shippingFeeController.clear();
+        _customerController.clear();
+        _descriptionController.clear();
+      }
+    });
+
+    ref.listen(homeNotifierProvider.select((s) => s.shippingFee), (_, fee) {
+      final feeText = fee > 0 ? fee.toString() : '';
+      if (_shippingFeeController.text != feeText) {
+        _shippingFeeController.text = feeText;
+      }
+    });
+
+    ref.listen(homeNotifierProvider.select((s) => s.customerName), (_, name) {
+      if (_customerController.text != (name ?? '')) {
+        _customerController.text = name ?? '';
+      }
+    });
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

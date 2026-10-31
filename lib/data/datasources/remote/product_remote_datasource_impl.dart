@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/common/result.dart';
@@ -57,12 +62,44 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
     }
   }
 
+  Future<void> _restoreLocalImageIfNeeded(ProductModel product) async {
+    final base64Data = product.imageBase64;
+    if (base64Data == null || base64Data.trim().isEmpty) return;
+
+    // If imageUrl is a remote web URL, it can already be loaded by network
+    if (product.imageUrl.startsWith('http://') || product.imageUrl.startsWith('https://')) {
+      return;
+    }
+
+    // If local file already exists on this device, no need to rewrite
+    if (product.imageUrl.isNotEmpty && File(product.imageUrl).existsSync()) {
+      return;
+    }
+
+    // Missing local file on Device B: decode base64 from cloud and save locally
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final localDir = Directory('${appDir.path}/products');
+      if (!await localDir.exists()) {
+        await localDir.create(recursive: true);
+      }
+      final localFile = File('${localDir.path}/ProductImage_${product.id}.jpg');
+      final bytes = base64Decode(base64Data);
+      await localFile.writeAsBytes(bytes, flush: true);
+      product.imageUrl = localFile.path;
+    } catch (e) {
+      debugPrint('Failed to restore product image from base64: $e');
+    }
+  }
+
   @override
   Future<Result<ProductModel?>> getProduct(int id) async {
     try {
       var res = await _firebaseFirestore.collection('Product').doc("$id").get();
       if (res.data() == null) return Result.success(data: null);
-      return Result.success(data: ProductModel.fromJson(res.data()!));
+      final product = ProductModel.fromJson(res.data()!);
+      await _restoreLocalImageIfNeeded(product);
+      return Result.success(data: product);
     } catch (e) {
       return Result.failure(error: e);
     }
@@ -91,6 +128,9 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
             .get();
       }
       var products = res.docs.map((e) => ProductModel.fromJson(e.data())).toList();
+      for (final p in products) {
+        await _restoreLocalImageIfNeeded(p);
+      }
       products.sort((a, b) => (b.createdAt ?? '').compareTo(a.createdAt ?? ''));
       return Result.success(data: products);
     } catch (e) {
@@ -122,6 +162,9 @@ class ProductRemoteDatasourceImpl extends ProductDatasource {
       }
 
       var products = rawProducts.docs.map((e) => ProductModel.fromJson(e.data())).toList();
+      for (final p in products) {
+        await _restoreLocalImageIfNeeded(p);
+      }
 
       // Sort in-memory to prevent FAILED_PRECONDITION (requiring composite indexes)
       products.sort((a, b) {

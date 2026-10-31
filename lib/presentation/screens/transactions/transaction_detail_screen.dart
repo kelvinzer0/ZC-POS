@@ -129,7 +129,10 @@ class TransactionDetailScreen extends ConsumerWidget {
           }
 
           if (snapshot.hasError && watchedTransaction == null) {
-            throw snapshot.error.toString();
+            return AppEmptyState(
+              title: 'Gagal memuat transaksi',
+              subtitle: snapshot.error.toString(),
+            );
           }
 
           final transaction = watchedTransaction ?? snapshot.data;

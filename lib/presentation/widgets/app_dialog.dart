@@ -29,7 +29,7 @@ class AppDialog {
     double? elevation,
   }) async {
     final context = AppRoutes.rootNavigatorKey.currentContext;
-    if (context == null) throw Exception('No context available for dialog');
+    if (context == null) return null;
 
     return await showDialog(
       context: context,
@@ -70,7 +70,7 @@ class AppDialog {
     Function(BuildContext)? onTapButton,
   }) async {
     final context = AppRoutes.rootNavigatorKey.currentContext;
-    if (context == null) throw Exception('No context available for dialog');
+    if (context == null) return;
 
     return await showDialog(
       context: context,
@@ -114,7 +114,7 @@ class AppDialog {
     bool dismissible = false,
   }) async {
     final context = AppRoutes.rootNavigatorKey.currentContext;
-    if (context == null) throw Exception('No context available for dialog');
+    if (context == null) return await process();
 
     // Show the progress dialog
     showDialog(
