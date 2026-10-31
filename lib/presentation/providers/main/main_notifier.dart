@@ -11,6 +11,7 @@ import '../../../domain/usecases/user_usecases.dart';
 import '../../widgets/app_snack_bar.dart';
 import '../auth/auth_notifier.dart';
 import '../products/products_notifier.dart';
+import '../transactions/transactions_notifier.dart';
 import 'main_state.dart';
 
 final mainNotifierProvider = NotifierProvider<MainNotifier, MainState>(
@@ -99,6 +100,9 @@ class MainNotifier extends Notifier<MainState> {
 
     // Refresh products list
     ref.read(productsNotifierProvider.notifier).getAllProducts();
+
+    // Refresh transactions list
+    ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
 
     // Check queued actions
     checkIsHasQueuedActions();

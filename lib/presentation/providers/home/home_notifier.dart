@@ -78,8 +78,9 @@ class HomeNotifier extends Notifier<HomeState> {
       final user = authState.user!;
       final storeCode = ref.read(storeServiceProvider).activeStoreCode;
 
+      final now = DateTime.now();
       var transaction = TransactionEntity(
-        id: DateTime.now().millisecondsSinceEpoch,
+        id: now.millisecondsSinceEpoch,
         storeCode: storeCode,
         paymentMethod: state.selectedPaymentMethod,
         channel: state.selectedChannel,
@@ -93,6 +94,8 @@ class HomeNotifier extends Notifier<HomeState> {
         returnAmount: state.receivedAmount - getTotalAmount(),
         totalOrderedProduct: state.orderedProducts.length,
         totalAmount: getTotalAmount(),
+        createdAt: now.toIso8601String(),
+        updatedAt: now.toIso8601String(),
       );
 
       final transactionRepository = ref.read(transactionRepositoryProvider);

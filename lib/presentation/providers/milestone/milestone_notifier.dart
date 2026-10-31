@@ -82,7 +82,14 @@ class MilestoneNotifier extends Notifier<MilestoneState> {
 
   Future<void> checkMilestones({DateTime? testTime}) async {
     final service = ref.read(milestoneServiceProvider);
-    final transactions = ref.read(transactionsNotifierProvider).allTransactions ?? [];
+    var transactions = ref.read(transactionsNotifierProvider).allTransactions;
+    if (transactions == null) {
+      try {
+        await ref.read(transactionsNotifierProvider.notifier).getAllTransactions();
+        transactions = ref.read(transactionsNotifierProvider).allTransactions;
+      } catch (_) {}
+    }
+    transactions ??= [];
     final products = ref.read(productsNotifierProvider).allProducts ?? [];
 
     final newNotifs = await service.evaluateMilestones(

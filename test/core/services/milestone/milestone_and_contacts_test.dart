@@ -214,5 +214,73 @@ void main() {
       expect(recapNotif!.message, contains('Omzet hari ini'));
       expect(recapNotif.message, contains('Terima kasih sudah berjuang!'));
     });
+
+    test('updates dailyRecap when initial recap was 0 and transactions load or new sales occur', () async {
+      final eveningTime = DateTime(2026, 10, 29, 20, 10);
+
+      // First run with no transactions loaded yet (e.g. at app open)
+      final initialNotifs = await service.evaluateMilestones(
+        allTransactions: [],
+        allProducts: [],
+        testTime: eveningTime,
+      );
+      final initialRecap = initialNotifs.where((n) => n.type == MilestoneType.dailyRecap).firstOrNull;
+      expect(initialRecap, isNotNull);
+      expect(initialRecap!.message, contains('Rp0'));
+
+      // Transactions finish loading with sales of Rp 450.000
+      final updatedTime = DateTime(2026, 10, 29, 20, 15);
+      final transactions = [
+        _mockTrx(
+          id: 1,
+          totalAmount: 450000,
+          createdAt: DateTime(2026, 10, 29, 14, 30).toIso8601String(),
+        ),
+      ];
+
+      final updatedNotifs = await service.evaluateMilestones(
+        allTransactions: transactions,
+        allProducts: [],
+        testTime: updatedTime,
+      );
+
+      final updatedRecap = updatedNotifs.where((n) => n.type == MilestoneType.dailyRecap).firstOrNull;
+      expect(updatedRecap, isNotNull);
+      expect(updatedRecap!.message, contains('Rp450.000'));
+
+      // Verify that history only keeps the latest updated recap
+      final history = service.getHistory();
+      final recapHistory = history.where((n) => n.type == MilestoneType.dailyRecap).toList();
+      expect(recapHistory.length, 1);
+      expect(recapHistory.first.message, contains('Rp450.000'));
+    });
+
+    test('dailyRecap correctly recognizes transactions with UTC ISO strings and SQLite dates', () async {
+      final eveningTime = DateTime(2026, 10, 29, 20, 30);
+      final transactions = [
+        _mockTrx(
+          id: 1,
+          totalAmount: 150000,
+          // SQLite style date without T
+          createdAt: '2026-10-29 11:20:00',
+        ),
+        _mockTrx(
+          id: 2,
+          totalAmount: 200000,
+          // UTC style ISO format
+          createdAt: DateTime(2026, 10, 29, 15, 0).toUtc().toIso8601String(),
+        ),
+      ];
+
+      final notifs = await service.evaluateMilestones(
+        allTransactions: transactions,
+        allProducts: [],
+        testTime: eveningTime,
+      );
+
+      final recapNotif = notifs.where((n) => n.type == MilestoneType.dailyRecap).firstOrNull;
+      expect(recapNotif, isNotNull);
+      expect(recapNotif!.message, contains('Rp350.000'));
+    });
   });
 }

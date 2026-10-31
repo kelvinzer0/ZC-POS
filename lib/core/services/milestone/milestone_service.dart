@@ -150,14 +150,33 @@ class MilestoneService {
 
     final List<MilestoneNotification> newNotifications = [];
 
+    DateTime? parseDate(String? raw) {
+      if (raw == null || raw.trim().isEmpty) return null;
+      final dt = DateTime.tryParse(raw.trim());
+      if (dt == null) return null;
+      return dt.toLocal();
+    }
+
+    bool isSameDay(DateTime a, DateTime b) {
+      return a.year == b.year && a.month == b.month && a.day == b.day;
+    }
+
     // Filter transactions
     final todayTransactions = allTransactions.where((t) {
       if (t.createdAt == null) return false;
+      final parsed = parseDate(t.createdAt);
+      if (parsed != null) {
+        return isSameDay(parsed, now);
+      }
       return t.createdAt!.startsWith(todayStr);
     }).toList();
 
     final yesterdayTransactions = allTransactions.where((t) {
       if (t.createdAt == null) return false;
+      final parsed = parseDate(t.createdAt);
+      if (parsed != null) {
+        return isSameDay(parsed, yesterday);
+      }
       return t.createdAt!.startsWith(yesterdayStr);
     }).toList();
 
@@ -327,8 +346,20 @@ class MilestoneService {
     // 10. Rekap harian (jam 20:05 WIB)
     final isAfter2005 = (now.hour > 20) || (now.hour == 20 && now.minute >= 5);
     final recapKey = 'milestone_${todayStr}_daily_recap';
-    if (isAfter2005 && !_isMilestoneTriggered(recapKey)) {
+    final recapAmountKey = 'milestone_${todayStr}_daily_recap_amount';
+    final lastRecapAmount = _prefs.getInt(recapAmountKey);
+    final isTriggered = _isMilestoneTriggered(recapKey);
+
+    // Trigger if not yet triggered, OR if previous recap was 0 while today has sales,
+    // OR if new transactions increased today's sales beyond what was previously reported
+    final shouldTriggerRecap = isAfter2005 &&
+        (!isTriggered ||
+            (lastRecapAmount == 0 && todaySales > 0) ||
+            (lastRecapAmount != null && todaySales > lastRecapAmount));
+
+    if (shouldTriggerRecap) {
       await _setMilestoneTriggered(recapKey);
+      await _prefs.setInt(recapAmountKey, todaySales);
       final omzetFormatted = CurrencyFormatter.format(todaySales);
       newNotifications.add(MilestoneNotification(
         id: recapKey,
