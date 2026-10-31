@@ -75,10 +75,16 @@ final storeServiceProvider = Provider<StoreService>(
 // Datasources
 // Local Datasources
 final productLocalDatasourceProvider = Provider<ProductLocalDatasourceImpl>(
-  (ref) => ProductLocalDatasourceImpl(ref.watch(databaseServiceProvider)),
+  (ref) => ProductLocalDatasourceImpl(
+    ref.watch(databaseServiceProvider),
+    ref.watch(sharedPreferencesProvider),
+  ),
 );
 final transactionLocalDatasourceProvider = Provider<TransactionLocalDatasourceImpl>(
-  (ref) => TransactionLocalDatasourceImpl(ref.watch(databaseServiceProvider)),
+  (ref) => TransactionLocalDatasourceImpl(
+    ref.watch(databaseServiceProvider),
+    ref.watch(sharedPreferencesProvider),
+  ),
 );
 final userLocalDatasourceProvider = Provider<UserLocalDatasourceImpl>(
   (ref) => UserLocalDatasourceImpl(ref.watch(databaseServiceProvider)),

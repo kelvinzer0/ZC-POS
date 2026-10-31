@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS '$userTableName' (
 CREATE TABLE IF NOT EXISTS '$productTableName' (
     'id' INTEGER NOT NULL,
     'createdById' TEXT,
+    'storeCode' TEXT,
     'name' TEXT,
     'imageUrl' TEXT,
     'imageBase64' TEXT,
@@ -57,6 +58,7 @@ CREATE TABLE IF NOT EXISTS '$transactionTableName' (
     'customerName' TEXT,
     'description' TEXT,
     'createdById' TEXT,
+    'storeCode' TEXT,
     'shippingFee' INTEGER DEFAULT 0,
     'receivedAmount' INTEGER,
     'returnAmount' INTEGER,

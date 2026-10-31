@@ -76,9 +76,11 @@ class HomeNotifier extends Notifier<HomeState> {
       final authState = ref.read(authNotifierProvider);
       if (!authState.isAuthenticated) throw 'Unauthenticated!';
       final user = authState.user!;
+      final storeCode = ref.read(storeServiceProvider).activeStoreCode;
 
       var transaction = TransactionEntity(
         id: DateTime.now().millisecondsSinceEpoch,
+        storeCode: storeCode,
         paymentMethod: state.selectedPaymentMethod,
         channel: state.selectedChannel,
         customerName: state.customerName,

@@ -107,9 +107,11 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       final resolvedName = (state.name != null && state.name!.trim().isNotEmpty)
           ? state.name!.trim()
           : 'Unnamed Product';
+      final storeCode = ref.read(storeServiceProvider).activeStoreCode;
 
       var product = ProductEntity(
         createdById: userId,
+        storeCode: storeCode,
         name: resolvedName,
         imageUrl: imageUrl ?? '',
         imageBase64: imageBase64,
@@ -156,10 +158,12 @@ class ProductFormNotifier extends AutoDisposeNotifier<ProductFormState> {
       final resolvedName = (state.name != null && state.name!.trim().isNotEmpty)
           ? state.name!.trim()
           : 'Unnamed Product';
+      final storeCode = ref.read(storeServiceProvider).activeStoreCode;
 
       var product = ProductEntity(
         id: id,
         createdById: userId,
+        storeCode: storeCode,
         name: resolvedName,
         imageUrl: imageUrl ?? '',
         imageBase64: imageBase64,

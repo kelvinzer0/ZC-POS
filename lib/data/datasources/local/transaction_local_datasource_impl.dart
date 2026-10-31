@@ -1,6 +1,8 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../core/common/result.dart';
+import '../../../core/constants/constants.dart';
 import '../../../core/services/database/database_config.dart';
 import '../../../core/services/database/database_service.dart';
 import '../../models/ordered_product_model.dart';
@@ -11,19 +13,26 @@ import '../interfaces/transaction_datasource.dart';
 
 class TransactionLocalDatasourceImpl extends TransactionDatasource {
   final DatabaseService _databaseService;
+  final SharedPreferences? _sharedPreferences;
 
-  TransactionLocalDatasourceImpl(this._databaseService);
+  TransactionLocalDatasourceImpl(this._databaseService, [this._sharedPreferences]);
 
   @override
   Future<Result<int>> createTransaction(TransactionModel transaction) async {
     try {
       final transactionId = await _databaseService.database.transaction((trx) async {
         // Create transaction
+        final storeCode = transaction.storeCode ?? _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+        final trxJson = transaction.toJson()
+          ..remove('orderedProducts')
+          ..remove('createdBy');
+        if (storeCode != null && storeCode.isNotEmpty) {
+          trxJson['storeCode'] = storeCode;
+        }
+
         await trx.insert(
           DatabaseConfig.transactionTableName,
-          transaction.toJson()
-            ..remove('orderedProducts')
-            ..remove('createdBy'),
+          trxJson,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
@@ -84,11 +93,17 @@ class TransactionLocalDatasourceImpl extends TransactionDatasource {
     try {
       await _databaseService.database.transaction((trx) async {
         // Update transaction
+        final storeCode = transaction.storeCode ?? _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+        final trxJson = transaction.toJson()
+          ..remove('orderedProducts')
+          ..remove('createdBy');
+        if (storeCode != null && storeCode.isNotEmpty) {
+          trxJson['storeCode'] = storeCode;
+        }
+
         await trx.update(
           DatabaseConfig.transactionTableName,
-          transaction.toJson()
-            ..remove('orderedProducts')
-            ..remove('createdBy'),
+          trxJson,
           where: 'id = ?',
           whereArgs: [transaction.id],
           conflictAlgorithm: ConflictAlgorithm.replace,
@@ -255,12 +270,23 @@ class TransactionLocalDatasourceImpl extends TransactionDatasource {
   Future<Result<List<TransactionModel>>> getAllUserTransactions(String userId) async {
     try {
       final transactions = await _databaseService.database.transaction((trx) async {
-        var rawTransactions = await trx.query(
-          DatabaseConfig.transactionTableName,
-          where: 'createdById = ?',
-          whereArgs: [userId],
-          orderBy: 'createdAt DESC',
-        );
+        final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+        List<Map<String, dynamic>> rawTransactions;
+        if (storeCode != null && storeCode.isNotEmpty) {
+          rawTransactions = await trx.query(
+            DatabaseConfig.transactionTableName,
+            where: 'storeCode = ? OR createdById = ?',
+            whereArgs: [storeCode, userId],
+            orderBy: 'createdAt DESC',
+          );
+        } else {
+          rawTransactions = await trx.query(
+            DatabaseConfig.transactionTableName,
+            where: 'createdById = ?',
+            whereArgs: [userId],
+            orderBy: 'createdAt DESC',
+          );
+        }
 
         var transactions = rawTransactions.map((e) => TransactionModel.fromJson(e)).toList();
 
@@ -311,14 +337,29 @@ class TransactionLocalDatasourceImpl extends TransactionDatasource {
   }) async {
     try {
       final transactions = await _databaseService.database.transaction((trx) async {
-        var rawTransactions = await trx.query(
-          DatabaseConfig.transactionTableName,
-          where: 'createdById = ? AND id LIKE ?',
-          whereArgs: [userId, "%${contains ?? ''}%"],
-          orderBy: '$orderBy $sortBy',
-          limit: limit,
-          offset: offset,
-        );
+        final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+        List<Map<String, dynamic>> rawTransactions;
+        final searchPattern = "%${contains ?? ''}%";
+
+        if (storeCode != null && storeCode.isNotEmpty) {
+          rawTransactions = await trx.query(
+            DatabaseConfig.transactionTableName,
+            where: '(storeCode = ? OR createdById = ?) AND (id LIKE ? OR customerName LIKE ? OR description LIKE ?)',
+            whereArgs: [storeCode, userId, searchPattern, searchPattern, searchPattern],
+            orderBy: '$orderBy $sortBy',
+            limit: limit,
+            offset: offset,
+          );
+        } else {
+          rawTransactions = await trx.query(
+            DatabaseConfig.transactionTableName,
+            where: 'createdById = ? AND (id LIKE ? OR customerName LIKE ? OR description LIKE ?)',
+            whereArgs: [userId, searchPattern, searchPattern, searchPattern],
+            orderBy: '$orderBy $sortBy',
+            limit: limit,
+            offset: offset,
+          );
+        }
 
         var transactions = rawTransactions.map((e) => TransactionModel.fromJson(e)).toList();
 

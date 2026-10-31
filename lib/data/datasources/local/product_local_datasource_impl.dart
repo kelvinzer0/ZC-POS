@@ -1,6 +1,8 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../core/common/result.dart';
+import '../../../core/constants/constants.dart';
 import '../../../core/services/database/database_config.dart';
 import '../../../core/services/database/database_service.dart';
 import '../../models/product_model.dart';
@@ -8,15 +10,22 @@ import '../interfaces/product_datasource.dart';
 
 class ProductLocalDatasourceImpl extends ProductDatasource {
   final DatabaseService _databaseService;
+  final SharedPreferences? _sharedPreferences;
 
-  ProductLocalDatasourceImpl(this._databaseService);
+  ProductLocalDatasourceImpl(this._databaseService, [this._sharedPreferences]);
 
   @override
   Future<Result<int>> createProduct(ProductModel product) async {
     try {
+      final storeCode = product.storeCode ?? _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      final json = product.toJson();
+      if (storeCode != null && storeCode.isNotEmpty) {
+        json['storeCode'] = storeCode;
+      }
+
       await _databaseService.database.insert(
         DatabaseConfig.productTableName,
-        product.toJson(),
+        json,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
@@ -30,9 +39,15 @@ class ProductLocalDatasourceImpl extends ProductDatasource {
   @override
   Future<Result<void>> updateProduct(ProductModel product) async {
     try {
+      final storeCode = product.storeCode ?? _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      final json = product.toJson();
+      if (storeCode != null && storeCode.isNotEmpty) {
+        json['storeCode'] = storeCode;
+      }
+
       await _databaseService.database.update(
         DatabaseConfig.productTableName,
-        product.toJson(),
+        json,
         where: 'id = ?',
         whereArgs: [product.id],
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -79,11 +94,21 @@ class ProductLocalDatasourceImpl extends ProductDatasource {
   @override
   Future<Result<List<ProductModel>>> getAllUserProducts(String userId) async {
     try {
-      var res = await _databaseService.database.query(
-        DatabaseConfig.productTableName,
-        where: 'createdById = ?',
-        whereArgs: [userId],
-      );
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      List<Map<String, dynamic>> res;
+      if (storeCode != null && storeCode.isNotEmpty) {
+        res = await _databaseService.database.query(
+          DatabaseConfig.productTableName,
+          where: 'storeCode = ? OR createdById = ?',
+          whereArgs: [storeCode, userId],
+        );
+      } else {
+        res = await _databaseService.database.query(
+          DatabaseConfig.productTableName,
+          where: 'createdById = ?',
+          whereArgs: [userId],
+        );
+      }
 
       return Result.success(
         data: res.map((e) => ProductModel.fromJson(e)).toList(),
@@ -103,14 +128,29 @@ class ProductLocalDatasourceImpl extends ProductDatasource {
     String? contains,
   }) async {
     try {
-      var res = await _databaseService.database.query(
-        DatabaseConfig.productTableName,
-        where: 'createdById = ? AND name LIKE ?',
-        whereArgs: [userId, "%${contains ?? ''}%"],
-        orderBy: '$orderBy $sortBy',
-        limit: limit,
-        offset: offset,
-      );
+      final storeCode = _sharedPreferences?.getString(Constants.activeStoreCodeKey);
+      List<Map<String, dynamic>> res;
+      final searchPattern = "%${contains ?? ''}%";
+
+      if (storeCode != null && storeCode.isNotEmpty) {
+        res = await _databaseService.database.query(
+          DatabaseConfig.productTableName,
+          where: '(storeCode = ? OR createdById = ?) AND (name LIKE ? OR category LIKE ? OR id LIKE ?)',
+          whereArgs: [storeCode, userId, searchPattern, searchPattern, searchPattern],
+          orderBy: '$orderBy $sortBy',
+          limit: limit,
+          offset: offset,
+        );
+      } else {
+        res = await _databaseService.database.query(
+          DatabaseConfig.productTableName,
+          where: 'createdById = ? AND (name LIKE ? OR category LIKE ? OR id LIKE ?)',
+          whereArgs: [userId, searchPattern, searchPattern, searchPattern],
+          orderBy: '$orderBy $sortBy',
+          limit: limit,
+          offset: offset,
+        );
+      }
 
       return Result.success(
         data: res.map((e) => ProductModel.fromJson(e)).toList(),

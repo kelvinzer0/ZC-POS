@@ -4,6 +4,7 @@ import 'user_model.dart';
 
 class TransactionModel {
   int id;
+  String? storeCode;
   String paymentMethod;
   String channel;
   String? customerName;
@@ -21,6 +22,7 @@ class TransactionModel {
 
   TransactionModel({
     required this.id,
+    this.storeCode,
     required this.paymentMethod,
     this.channel = 'offline',
     this.customerName,
@@ -40,6 +42,7 @@ class TransactionModel {
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
       id: json['id'],
+      storeCode: json['storeCode'],
       paymentMethod: json['paymentMethod'],
       channel: json['channel'] ?? 'offline',
       customerName: json['customerName'],
@@ -62,6 +65,7 @@ class TransactionModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'storeCode': storeCode,
       'paymentMethod': paymentMethod,
       'channel': channel,
       'customerName': customerName,
@@ -82,6 +86,7 @@ class TransactionModel {
   factory TransactionModel.fromEntity(TransactionEntity entity) {
     return TransactionModel(
       id: entity.id ?? DateTime.now().millisecondsSinceEpoch,
+      storeCode: entity.storeCode,
       paymentMethod: entity.paymentMethod,
       channel: entity.channel,
       customerName: entity.customerName,
@@ -102,6 +107,7 @@ class TransactionModel {
   TransactionEntity toEntity() {
     return TransactionEntity(
       id: id,
+      storeCode: storeCode,
       paymentMethod: paymentMethod,
       channel: channel,
       customerName: customerName,

@@ -44,6 +44,7 @@ void main() {
     test('TransactionModel converts to and from JSON with shippingFee', () {
       final model = TransactionModel(
         id: 101,
+        storeCode: 'WARUNG-LAKKU',
         paymentMethod: 'bank',
         channel: 'wa',
         customerName: 'Budi',
@@ -70,13 +71,16 @@ void main() {
       final json = model.toJson();
       expect(json['shippingFee'], 12000);
       expect(json['channel'], 'wa');
+      expect(json['storeCode'], 'WARUNG-LAKKU');
 
       final reconstructed = TransactionModel.fromJson(json);
       expect(reconstructed.shippingFee, 12000);
       expect(reconstructed.totalAmount, 42000);
+      expect(reconstructed.storeCode, 'WARUNG-LAKKU');
 
       final entity = reconstructed.toEntity();
       expect(entity.shippingFee, 12000);
+      expect(entity.storeCode, 'WARUNG-LAKKU');
     });
 
     test('HomeNotifier calculates subtotal and totalAmount with shippingFee', () {

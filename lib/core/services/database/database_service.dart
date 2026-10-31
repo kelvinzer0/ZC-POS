@@ -72,6 +72,16 @@ class DatabaseService {
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN shippingFee INTEGER DEFAULT 0");
     } catch (_) {}
+
+    // Ensure storeCode column exists in Transaction table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN storeCode TEXT");
+    } catch (_) {}
+
+    // Ensure storeCode column exists in Product table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.productTableName}' ADD COLUMN storeCode TEXT");
+    } catch (_) {}
   }
 
   @visibleForTesting
@@ -110,6 +120,16 @@ class DatabaseService {
     // Ensure shippingFee column exists in Transaction table for existing databases
     try {
       await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN shippingFee INTEGER DEFAULT 0");
+    } catch (_) {}
+
+    // Ensure storeCode column exists in Transaction table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.transactionTableName}' ADD COLUMN storeCode TEXT");
+    } catch (_) {}
+
+    // Ensure storeCode column exists in Product table for existing databases
+    try {
+      await database.execute("ALTER TABLE '${DatabaseConfig.productTableName}' ADD COLUMN storeCode TEXT");
     } catch (_) {}
   }
 

@@ -3,6 +3,7 @@ import '../../domain/entities/product_entity.dart';
 class ProductModel {
   int id;
   String createdById;
+  String? storeCode;
   String name;
   String imageUrl;
   String? imageBase64;
@@ -17,6 +18,7 @@ class ProductModel {
   ProductModel({
     required this.id,
     required this.createdById,
+    this.storeCode,
     required this.name,
     required this.imageUrl,
     this.imageBase64,
@@ -33,6 +35,7 @@ class ProductModel {
     return ProductModel(
       id: json['id'],
       createdById: json['createdById'],
+      storeCode: json['storeCode'],
       name: json['name'],
       imageUrl: json['imageUrl'],
       imageBase64: json['imageBase64'],
@@ -50,6 +53,7 @@ class ProductModel {
     return {
       'id': id,
       'createdById': createdById,
+      'storeCode': storeCode,
       'name': name,
       'imageUrl': imageUrl,
       'imageBase64': imageBase64,
@@ -67,6 +71,7 @@ class ProductModel {
     return ProductModel(
       id: entity.id ?? DateTime.now().millisecondsSinceEpoch,
       createdById: entity.createdById,
+      storeCode: entity.storeCode,
       name: entity.name,
       imageUrl: entity.imageUrl,
       imageBase64: entity.imageBase64,
@@ -84,6 +89,7 @@ class ProductModel {
     return ProductEntity(
       id: id,
       createdById: createdById,
+      storeCode: storeCode,
       name: name,
       imageUrl: imageUrl,
       imageBase64: imageBase64,
