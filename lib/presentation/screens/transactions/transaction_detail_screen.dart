@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/di/app_providers.dart';
 import '../../../core/extensions/string_casing_extension.dart';
@@ -10,6 +11,8 @@ import '../../../core/utilities/date_time_formatter.dart';
 import '../../../domain/entities/ordered_product_entity.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../../providers/transactions/transaction_detail_notifier.dart';
+import '../../providers/transactions/transactions_notifier.dart';
+import '../../widgets/app_dialog.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_progress_indicator.dart';
 import '../../widgets/app_snack_bar.dart';
@@ -18,6 +21,44 @@ class TransactionDetailScreen extends ConsumerWidget {
   final int id;
 
   const TransactionDetailScreen({super.key, required this.id});
+
+  void _confirmDelete(BuildContext context, WidgetRef ref, TransactionEntity? transaction) {
+    final targetTransaction = transaction ?? ref.read(transactionDetailNotifierProvider);
+    if (targetTransaction == null) {
+      AppSnackBar.showError('Data transaksi belum siap');
+      return;
+    }
+
+    final targetId = targetTransaction.id ?? id;
+
+    AppDialog.show(
+      title: 'Hapus Transaksi Permanen',
+      text: 'Apakah Anda yakin ingin menghapus transaksi #$targetId? '
+          'Stok produk akan dikembalikan dan transaksi akan dihapus permanen dari riwayat serta laporan penjualan.',
+      leftButtonText: 'Batal',
+      rightButtonText: 'Hapus Transaksi',
+      rightButtonColor: Theme.of(context).colorScheme.errorContainer,
+      rightButtonTextColor: Theme.of(context).colorScheme.error,
+      onTapRightButton: (dialogContext) async {
+        dialogContext.pop();
+
+        final res = await AppDialog.showProgress(() async {
+          return await ref
+              .read(transactionsNotifierProvider.notifier)
+              .deleteTransaction(targetId);
+        });
+
+        if (res.isSuccess) {
+          if (context.mounted) {
+            context.pop();
+            AppSnackBar.show('Transaksi #$targetId berhasil dihapus permanen');
+          }
+        } else {
+          AppSnackBar.showError(res.error?.toString() ?? 'Gagal menghapus transaksi');
+        }
+      },
+    );
+  }
 
   void _showPrintOptions(BuildContext context, WidgetRef ref, TransactionEntity? transaction) {
     final targetTransaction = transaction ?? ref.read(transactionDetailNotifierProvider);
@@ -115,6 +156,11 @@ class TransactionDetailScreen extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
+            icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.error),
+            tooltip: 'Hapus Transaksi',
+            onPressed: () => _confirmDelete(context, ref, watchedTransaction),
+          ),
+          IconButton(
             icon: const Icon(Icons.print_outlined),
             tooltip: 'Print Options',
             onPressed: () => _showPrintOptions(context, ref, watchedTransaction),
@@ -152,6 +198,30 @@ class TransactionDetailScreen extends ConsumerWidget {
                 _TransactionDetail(transaction: transaction),
                 const SizedBox(height: AppSizes.padding),
                 _PaymentDetail(transaction: transaction),
+                const SizedBox(height: AppSizes.padding * 1.5),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmDelete(context, ref, transaction),
+                    icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.error),
+                    label: Text(
+                      'Hapus Transaksi Permanen',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radius),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: AppSizes.padding),
               ],
             ),

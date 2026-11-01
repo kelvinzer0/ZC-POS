@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/di/app_providers.dart';
+import '../../../core/common/result.dart';
 import '../../../domain/usecases/params/base_params.dart';
 import '../../../domain/usecases/transaction_usecases.dart';
 import '../auth/auth_notifier.dart';
+import '../milestone/milestone_notifier.dart';
+import '../products/products_notifier.dart';
 import 'transactions_state.dart';
 
 final transactionsNotifierProvider = NotifierProvider<TransactionsNotifier, TransactionsState>(
@@ -57,4 +60,23 @@ class TransactionsNotifier extends Notifier<TransactionsState> {
       throw res.error ?? 'Failed to load data';
     }
   }
+
+  Future<Result<void>> deleteTransaction(int id) async {
+    final transactionRepository = ref.read(transactionRepositoryProvider);
+    final res = await DeleteTransactionUsecase(transactionRepository).call(id);
+
+    if (res.isSuccess) {
+      final current = state.allTransactions;
+      if (current != null) {
+        state = state.copyWith(
+          allTransactions: current.where((t) => t.id != id).toList(),
+        );
+      }
+      ref.read(productsNotifierProvider.notifier).getAllProducts();
+      ref.read(milestoneNotifierProvider.notifier).checkMilestones();
+    }
+
+    return res;
+  }
 }
+

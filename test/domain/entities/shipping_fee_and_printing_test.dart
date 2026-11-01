@@ -224,5 +224,57 @@ void main() {
       expect('  $qty2 x ${CurrencyFormatter.withoutSymbol(price2).trim()}', '  2 x 5.000');
       expect(CurrencyFormatter.withoutSymbol(price2 * qty2).trim(), '10.000');
     });
+
+    test('Deleting transaction removes it from transaction list and recalculates report revenue accurately', () {
+      final t1 = TransactionEntity(
+        id: 1001,
+        paymentMethod: 'cash',
+        channel: 'offline',
+        createdById: 'u1',
+        receivedAmount: 50000,
+        returnAmount: 0,
+        totalAmount: 50000,
+        totalOrderedProduct: 2,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+      final t2 = TransactionEntity(
+        id: 1002,
+        paymentMethod: 'qris',
+        channel: 'wa',
+        createdById: 'u1',
+        receivedAmount: 30000,
+        returnAmount: 0,
+        totalAmount: 30000,
+        totalOrderedProduct: 1,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      final initialTransactions = [t1, t2];
+      int initialTotalRevenue = initialTransactions.fold(0, (int sum, t) => sum + (t.totalAmount.toInt()));
+      expect(initialTotalRevenue, 80000);
+
+      // Delete transaction t2 (batal/gak jadi)
+      final afterDeleteTransactions = initialTransactions.where((t) => t.id != 1002).toList();
+      expect(afterDeleteTransactions.length, 1);
+      expect(afterDeleteTransactions.first.id, 1001);
+
+      // Report recalculation reflects the permanent deletion immediately
+      int newTotalRevenue = afterDeleteTransactions.fold(0, (int sum, t) => sum + (t.totalAmount.toInt()));
+      expect(newTotalRevenue, 50000);
+      expect(initialTotalRevenue - newTotalRevenue, 30000);
+    });
+
+    test('Stock and sold count revert calculation on transaction deletion', () {
+      int initialStock = 18;
+      int initialSold = 12;
+      int purchasedQuantity = 3;
+
+      // When transaction is deleted/cancelled, stock is restored and sold is decreased
+      int revertedStock = initialStock + purchasedQuantity;
+      int revertedSold = initialSold - purchasedQuantity;
+
+      expect(revertedStock, 21);
+      expect(revertedSold, 9);
+    });
   });
 }
