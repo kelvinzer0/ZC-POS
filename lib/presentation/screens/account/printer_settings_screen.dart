@@ -368,24 +368,35 @@ class _ReceiptReviewMessageSection extends ConsumerStatefulWidget {
 }
 
 class _ReceiptReviewMessageSectionState extends ConsumerState<_ReceiptReviewMessageSection> {
+  late final TextEditingController _thankYouMessageController;
   late final TextEditingController _reviewMessageController;
 
   @override
   void initState() {
     super.initState();
+    final thankYou = ref.read(printerSettingsNotifierProvider).receiptThankYouMessage;
     final message = ref.read(printerSettingsNotifierProvider).receiptReviewMessage;
+    _thankYouMessageController = TextEditingController(text: thankYou);
     _reviewMessageController = TextEditingController(text: message);
   }
 
   @override
   void dispose() {
+    _thankYouMessageController.dispose();
     _reviewMessageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final hideThankYou = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptThankYouMessage));
     final hideReview = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptReviewMessage));
+
+    ref.listen(printerSettingsNotifierProvider.select((s) => s.receiptThankYouMessage), (_, next) {
+      if (_thankYouMessageController.text != next) {
+        _thankYouMessageController.text = next;
+      }
+    });
 
     ref.listen(printerSettingsNotifierProvider.select((s) => s.receiptReviewMessage), (_, next) {
       if (_reviewMessageController.text != next) {
@@ -407,18 +418,62 @@ class _ReceiptReviewMessageSectionState extends ConsumerState<_ReceiptReviewMess
         children: [
           Row(
             children: [
-              Icon(Icons.star_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+              Icon(Icons.chat_bubble_outline_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Pesan Review Bintang 5 di Struk',
+                'Footer & Pesan Penutup Struk',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            'Sesuaikan pesan ajakan ulasan bintang 5 atau ucapan terima kasih yang dicetak di bagian bawah struk.',
+            'Sesuaikan ucapan terima kasih dan pesan ajakan ulasan bintang 5 yang dicetak di bagian bawah struk.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+          ),
+          const SizedBox(height: AppSizes.padding),
+          AppTextField(
+            controller: _thankYouMessageController,
+            labelText: 'Pesan Terima Kasih',
+            hintText: 'Contoh: Thanks for your order!',
+            onChanged: (v) {
+              ref.read(printerSettingsNotifierProvider.notifier).setReceiptThankYouMessage(v);
+            },
+          ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () {
+              ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptThankYouMessage(!hideThankYou);
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: Checkbox(
+                      value: hideThankYou,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      onChanged: (val) {
+                        if (val != null) {
+                          ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptThankYouMessage(val);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sembunyikan Ucapan Terima Kasih di Struk',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: hideThankYou ? FontWeight.w600 : FontWeight.normal,
+                          color: hideThankYou ? Theme.of(context).colorScheme.error : null,
+                        ),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: AppSizes.padding),
           AppTextField(

@@ -39,6 +39,8 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
       hideReceiptHeaderSubtitle: printerService.hideReceiptHeaderSubtitle,
       receiptReviewMessage: printerService.receiptReviewMessage,
       hideReceiptReviewMessage: printerService.hideReceiptReviewMessage,
+      receiptThankYouMessage: printerService.receiptThankYouMessage,
+      hideReceiptThankYouMessage: printerService.hideReceiptThankYouMessage,
       selectedTypes: {
         PrinterConnectionType.usb,
         PrinterConnectionType.bluetooth,
@@ -93,6 +95,20 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
   Future<void> toggleHideReceiptReviewMessage(bool hide) async {
     await ref.read(printerServiceProvider).setHideReceiptReviewMessage(hide);
     state = state.copyWith(hideReceiptReviewMessage: hide);
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> setReceiptThankYouMessage(String? message) async {
+    await ref.read(printerServiceProvider).setReceiptThankYouMessage(message);
+    state = state.copyWith(
+      receiptThankYouMessage: message ?? PrinterService.defaultThankYouMessage,
+    );
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> toggleHideReceiptThankYouMessage(bool hide) async {
+    await ref.read(printerServiceProvider).setHideReceiptThankYouMessage(hide);
+    state = state.copyWith(hideReceiptThankYouMessage: hide);
     ref.read(storeServiceProvider).syncSettingsToCloud();
   }
 

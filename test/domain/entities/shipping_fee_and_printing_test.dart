@@ -120,7 +120,7 @@ void main() {
       expect(notifier.getTotalAmount(), 50000);
     });
 
-    test('PrinterSettingsState supports hideReceiptHeaderTitle, hideReceiptHeaderSubtitle, and receiptReviewMessage', () {
+    test('PrinterSettingsState supports hideReceiptHeaderTitle, hideReceiptHeaderSubtitle, receiptReviewMessage, and receiptThankYouMessage', () {
       const state = PrinterSettingsState(
         paperSize: PaperSize.mm58,
         selectedTypes: {},
@@ -129,17 +129,23 @@ void main() {
       expect(state.hideReceiptHeaderSubtitle, false);
       expect(state.hideReceiptReviewMessage, false);
       expect(state.receiptReviewMessage, 'Loved the food? Leave us a 5-star review via QR code.');
+      expect(state.hideReceiptThankYouMessage, false);
+      expect(state.receiptThankYouMessage, 'Thanks for your order!');
 
       final updated = state.copyWith(
         hideReceiptHeaderTitle: true,
         hideReceiptHeaderSubtitle: true,
         hideReceiptReviewMessage: true,
         receiptReviewMessage: 'Terima kasih atas pesanan Anda!',
+        hideReceiptThankYouMessage: true,
+        receiptThankYouMessage: 'Terima kasih banyak!',
       );
       expect(updated.hideReceiptHeaderTitle, true);
       expect(updated.hideReceiptHeaderSubtitle, true);
       expect(updated.hideReceiptReviewMessage, true);
       expect(updated.receiptReviewMessage, 'Terima kasih atas pesanan Anda!');
+      expect(updated.hideReceiptThankYouMessage, true);
+      expect(updated.receiptThankYouMessage, 'Terima kasih banyak!');
     });
 
     test('ProductEntity and ProductModel support imageBase64 for cloud sync', () {

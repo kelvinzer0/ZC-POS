@@ -14,6 +14,8 @@ class PrinterSettingsState {
   final bool hideReceiptHeaderSubtitle;
   final String receiptReviewMessage;
   final bool hideReceiptReviewMessage;
+  final String receiptThankYouMessage;
+  final bool hideReceiptThankYouMessage;
 
   const PrinterSettingsState({
     this.isScanning = false,
@@ -29,6 +31,8 @@ class PrinterSettingsState {
     this.hideReceiptHeaderSubtitle = false,
     this.receiptReviewMessage = 'Loved the food? Leave us a 5-star review via QR code.',
     this.hideReceiptReviewMessage = false,
+    this.receiptThankYouMessage = 'Thanks for your order!',
+    this.hideReceiptThankYouMessage = false,
   });
 
   PrinterSettingsState copyWith({
@@ -46,6 +50,8 @@ class PrinterSettingsState {
     bool? hideReceiptHeaderSubtitle,
     String? receiptReviewMessage,
     bool? hideReceiptReviewMessage,
+    String? receiptThankYouMessage,
+    bool? hideReceiptThankYouMessage,
   }) {
     return PrinterSettingsState(
       isScanning: isScanning ?? this.isScanning,
@@ -61,6 +67,8 @@ class PrinterSettingsState {
       hideReceiptHeaderSubtitle: hideReceiptHeaderSubtitle ?? this.hideReceiptHeaderSubtitle,
       receiptReviewMessage: receiptReviewMessage ?? this.receiptReviewMessage,
       hideReceiptReviewMessage: hideReceiptReviewMessage ?? this.hideReceiptReviewMessage,
+      receiptThankYouMessage: receiptThankYouMessage ?? this.receiptThankYouMessage,
+      hideReceiptThankYouMessage: hideReceiptThankYouMessage ?? this.hideReceiptThankYouMessage,
     );
   }
 }

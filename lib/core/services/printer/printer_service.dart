@@ -111,6 +111,26 @@ class PrinterService {
     await _sharedPreferences.setBool(Constants.hideReceiptReviewMessageKey, value);
   }
 
+  static const String defaultThankYouMessage = 'Thanks for your order!';
+
+  String get receiptThankYouMessage =>
+      _sharedPreferences.getString(Constants.receiptThankYouMessageKey) ?? defaultThankYouMessage;
+
+  Future<void> setReceiptThankYouMessage(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await _sharedPreferences.remove(Constants.receiptThankYouMessageKey);
+    } else {
+      await _sharedPreferences.setString(Constants.receiptThankYouMessageKey, value.trim());
+    }
+  }
+
+  bool get hideReceiptThankYouMessage =>
+      _sharedPreferences.getBool(Constants.hideReceiptThankYouMessageKey) ?? false;
+
+  Future<void> setHideReceiptThankYouMessage(bool value) async {
+    await _sharedPreferences.setBool(Constants.hideReceiptThankYouMessageKey, value);
+  }
+
   Future<Result<void>> scanPrinters({
     Set<PrinterConnectionType> types = const {
       PrinterConnectionType.usb,
@@ -397,7 +417,9 @@ class PrinterService {
         size: QRSize.size3,
       );
       ticket.emptyLines();
-      ticket.text('Thank you for your order!', align: PrintAlign.center);
+      if (!hideReceiptThankYouMessage && receiptThankYouMessage.trim().isNotEmpty) {
+        ticket.text(receiptThankYouMessage.trim(), align: PrintAlign.center);
+      }
       if (!hideReceiptReviewMessage && receiptReviewMessage.trim().isNotEmpty) {
         ticket.text(
           receiptReviewMessage.trim(),

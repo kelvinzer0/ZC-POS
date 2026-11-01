@@ -19,6 +19,8 @@ class Constants {
   static const String hideReceiptHeaderSubtitleKey = 'hide_receipt_header_subtitle';
   static const String receiptReviewMessageKey = 'receipt_review_message';
   static const String hideReceiptReviewMessageKey = 'hide_receipt_review_message';
+  static const String receiptThankYouMessageKey = 'receipt_thank_you_message';
+  static const String hideReceiptThankYouMessageKey = 'hide_receipt_thank_you_message';
   static const String cartDraftKey = 'cart_draft_key';
   static const String activeStoreCodeKey = 'active_store_code';
 
