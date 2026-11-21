@@ -13,6 +13,8 @@ formatter:
   trailing_commas: preserve
 
 analyzer:
+  errors:
+    deprecated_member_use: ignore
   exclude:
     - "**/*.g.dart"
     - "**/*.mocks.dart"
