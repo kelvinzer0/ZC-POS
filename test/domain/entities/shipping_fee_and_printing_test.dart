@@ -128,6 +128,8 @@ void main() {
       expect(state.hideReceiptHeaderTitle, false);
       expect(state.hideReceiptHeaderSubtitle, false);
       expect(state.hideReceiptReviewMessage, false);
+      expect(state.hideReceiptReviewBarcode, false);
+      expect(state.receiptReviewBarcodeSize, 3);
       expect(state.receiptReviewMessage, 'Loved the food? Leave us a 5-star review via QR code.');
       expect(state.hideReceiptThankYouMessage, false);
       expect(state.receiptThankYouMessage, 'Thanks for your order!');
@@ -136,6 +138,8 @@ void main() {
         hideReceiptHeaderTitle: true,
         hideReceiptHeaderSubtitle: true,
         hideReceiptReviewMessage: true,
+        hideReceiptReviewBarcode: true,
+        receiptReviewBarcodeSize: 6,
         receiptReviewMessage: 'Terima kasih atas pesanan Anda!',
         hideReceiptThankYouMessage: true,
         receiptThankYouMessage: 'Terima kasih banyak!',
@@ -143,6 +147,8 @@ void main() {
       expect(updated.hideReceiptHeaderTitle, true);
       expect(updated.hideReceiptHeaderSubtitle, true);
       expect(updated.hideReceiptReviewMessage, true);
+      expect(updated.hideReceiptReviewBarcode, true);
+      expect(updated.receiptReviewBarcodeSize, 6);
       expect(updated.receiptReviewMessage, 'Terima kasih atas pesanan Anda!');
       expect(updated.hideReceiptThankYouMessage, true);
       expect(updated.receiptThankYouMessage, 'Terima kasih banyak!');

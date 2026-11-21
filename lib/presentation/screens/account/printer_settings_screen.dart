@@ -391,6 +391,8 @@ class _ReceiptReviewMessageSectionState extends ConsumerState<_ReceiptReviewMess
   Widget build(BuildContext context) {
     final hideThankYou = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptThankYouMessage));
     final hideReview = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptReviewMessage));
+    final hideBarcode = ref.watch(printerSettingsNotifierProvider.select((s) => s.hideReceiptReviewBarcode));
+    final barcodeSize = ref.watch(printerSettingsNotifierProvider.select((s) => s.receiptReviewBarcodeSize));
 
     ref.listen(printerSettingsNotifierProvider.select((s) => s.receiptThankYouMessage), (_, next) {
       if (_thankYouMessageController.text != next) {
@@ -517,6 +519,166 @@ class _ReceiptReviewMessageSectionState extends ConsumerState<_ReceiptReviewMess
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () {
+              ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptReviewBarcode(!hideBarcode);
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: Checkbox(
+                      value: hideBarcode,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      onChanged: (val) {
+                        if (val != null) {
+                          ref.read(printerSettingsNotifierProvider.notifier).toggleHideReceiptReviewBarcode(val);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sembunyikan Barcode Review di Struk',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: hideBarcode ? FontWeight.w600 : FontWeight.normal,
+                          color: hideBarcode ? Theme.of(context).colorScheme.error : null,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.padding),
+          Container(
+            padding: const EdgeInsets.all(AppSizes.padding / 1.5),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(AppSizes.radius / 1.5),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.qr_code_2_rounded,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Zoom / Ukuran Barcode Review',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Level $barcodeSize (1-8)',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.zoom_out_rounded),
+                      tooltip: 'Zoom Out Barcode',
+                      onPressed: barcodeSize > 1
+                          ? () => ref.read(printerSettingsNotifierProvider.notifier).zoomOutReceiptReviewBarcode()
+                          : null,
+                    ),
+                    Expanded(
+                      child: Slider(
+                        value: barcodeSize.toDouble(),
+                        min: 1.0,
+                        max: 8.0,
+                        divisions: 7,
+                        label: 'Level $barcodeSize',
+                        onChanged: (val) {
+                          ref.read(printerSettingsNotifierProvider.notifier).setReceiptReviewBarcodeSize(val.round());
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.zoom_in_rounded),
+                      tooltip: 'Zoom In Barcode',
+                      onPressed: barcodeSize < 8
+                          ? () => ref.read(printerSettingsNotifierProvider.notifier).zoomInReceiptReviewBarcode()
+                          : null,
+                    ),
+                  ],
+                ),
+                Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.only(top: 4, bottom: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: hideBarcode
+                          ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3)
+                          : Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: hideBarcode
+                            ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5)
+                            : Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Opacity(
+                          opacity: hideBarcode ? 0.3 : 1.0,
+                          child: Icon(
+                            Icons.qr_code_2_rounded,
+                            size: 28.0 + (barcodeSize * 8.0),
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          hideBarcode
+                              ? 'Barcode Review Disembunyikan (Tidak Dicetak)'
+                              : 'Preview Ukuran Barcode: Level $barcodeSize (${barcodeSize == 3 ? 'Default' : barcodeSize < 3 ? 'Kecil' : 'Besar'})',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: hideBarcode
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(context).colorScheme.outline,
+                                fontWeight: hideBarcode ? FontWeight.bold : FontWeight.normal,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -14,6 +14,8 @@ class PrinterSettingsState {
   final bool hideReceiptHeaderSubtitle;
   final String receiptReviewMessage;
   final bool hideReceiptReviewMessage;
+  final bool hideReceiptReviewBarcode;
+  final int receiptReviewBarcodeSize;
   final String receiptThankYouMessage;
   final bool hideReceiptThankYouMessage;
 
@@ -31,6 +33,8 @@ class PrinterSettingsState {
     this.hideReceiptHeaderSubtitle = false,
     this.receiptReviewMessage = 'Loved the food? Leave us a 5-star review via QR code.',
     this.hideReceiptReviewMessage = false,
+    this.hideReceiptReviewBarcode = false,
+    this.receiptReviewBarcodeSize = 3,
     this.receiptThankYouMessage = 'Thanks for your order!',
     this.hideReceiptThankYouMessage = false,
   });
@@ -50,6 +54,8 @@ class PrinterSettingsState {
     bool? hideReceiptHeaderSubtitle,
     String? receiptReviewMessage,
     bool? hideReceiptReviewMessage,
+    bool? hideReceiptReviewBarcode,
+    int? receiptReviewBarcodeSize,
     String? receiptThankYouMessage,
     bool? hideReceiptThankYouMessage,
   }) {
@@ -67,6 +73,8 @@ class PrinterSettingsState {
       hideReceiptHeaderSubtitle: hideReceiptHeaderSubtitle ?? this.hideReceiptHeaderSubtitle,
       receiptReviewMessage: receiptReviewMessage ?? this.receiptReviewMessage,
       hideReceiptReviewMessage: hideReceiptReviewMessage ?? this.hideReceiptReviewMessage,
+      hideReceiptReviewBarcode: hideReceiptReviewBarcode ?? this.hideReceiptReviewBarcode,
+      receiptReviewBarcodeSize: receiptReviewBarcodeSize ?? this.receiptReviewBarcodeSize,
       receiptThankYouMessage: receiptThankYouMessage ?? this.receiptThankYouMessage,
       hideReceiptThankYouMessage: hideReceiptThankYouMessage ?? this.hideReceiptThankYouMessage,
     );

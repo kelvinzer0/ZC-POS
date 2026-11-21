@@ -39,6 +39,8 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
       hideReceiptHeaderSubtitle: printerService.hideReceiptHeaderSubtitle,
       receiptReviewMessage: printerService.receiptReviewMessage,
       hideReceiptReviewMessage: printerService.hideReceiptReviewMessage,
+      hideReceiptReviewBarcode: printerService.hideReceiptReviewBarcode,
+      receiptReviewBarcodeSize: printerService.receiptReviewBarcodeSize,
       receiptThankYouMessage: printerService.receiptThankYouMessage,
       hideReceiptThankYouMessage: printerService.hideReceiptThankYouMessage,
       selectedTypes: {
@@ -96,6 +98,31 @@ class PrinterSettingsNotifier extends AutoDisposeNotifier<PrinterSettingsState> 
     await ref.read(printerServiceProvider).setHideReceiptReviewMessage(hide);
     state = state.copyWith(hideReceiptReviewMessage: hide);
     ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> toggleHideReceiptReviewBarcode(bool hide) async {
+    await ref.read(printerServiceProvider).setHideReceiptReviewBarcode(hide);
+    state = state.copyWith(hideReceiptReviewBarcode: hide);
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> setReceiptReviewBarcodeSize(int size) async {
+    final clamped = size.clamp(1, 8);
+    await ref.read(printerServiceProvider).setReceiptReviewBarcodeSize(clamped);
+    state = state.copyWith(receiptReviewBarcodeSize: clamped);
+    ref.read(storeServiceProvider).syncSettingsToCloud();
+  }
+
+  Future<void> zoomInReceiptReviewBarcode() async {
+    if (state.receiptReviewBarcodeSize < 8) {
+      await setReceiptReviewBarcodeSize(state.receiptReviewBarcodeSize + 1);
+    }
+  }
+
+  Future<void> zoomOutReceiptReviewBarcode() async {
+    if (state.receiptReviewBarcodeSize > 1) {
+      await setReceiptReviewBarcodeSize(state.receiptReviewBarcodeSize - 1);
+    }
   }
 
   Future<void> setReceiptThankYouMessage(String? message) async {

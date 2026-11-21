@@ -51,6 +51,8 @@ class StoreService {
       final hideHeaderSubtitle = _printerService.hideReceiptHeaderSubtitle;
       final reviewMessage = _printerService.receiptReviewMessage;
       final hideReviewMessage = _printerService.hideReceiptReviewMessage;
+      final hideReviewBarcode = _printerService.hideReceiptReviewBarcode;
+      final reviewBarcodeSize = _printerService.receiptReviewBarcodeSize;
       final thankYouMessage = _printerService.receiptThankYouMessage;
       final hideThankYouMessage = _printerService.hideReceiptThankYouMessage;
 
@@ -62,6 +64,8 @@ class StoreService {
         'hideHeaderSubtitle': hideHeaderSubtitle,
         'reviewMessage': reviewMessage,
         'hideReviewMessage': hideReviewMessage,
+        'hideReviewBarcode': hideReviewBarcode,
+        'reviewBarcodeSize': reviewBarcodeSize,
         'thankYouMessage': thankYouMessage,
         'hideThankYouMessage': hideThankYouMessage,
         'paperSize': paperSize,
@@ -100,6 +104,12 @@ class StoreService {
       }
       if (data['hideReviewMessage'] is bool) {
         await _printerService.setHideReceiptReviewMessage(data['hideReviewMessage']);
+      }
+      if (data['hideReviewBarcode'] is bool) {
+        await _printerService.setHideReceiptReviewBarcode(data['hideReviewBarcode']);
+      }
+      if (data['reviewBarcodeSize'] is int) {
+        await _printerService.setReceiptReviewBarcodeSize(data['reviewBarcodeSize']);
       }
       if (data['thankYouMessage'] is String) {
         await _printerService.setReceiptThankYouMessage(data['thankYouMessage']);

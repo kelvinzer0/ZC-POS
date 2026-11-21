@@ -111,6 +111,39 @@ class PrinterService {
     await _sharedPreferences.setBool(Constants.hideReceiptReviewMessageKey, value);
   }
 
+  static const int defaultReviewBarcodeSize = 3;
+
+  bool get hideReceiptReviewBarcode =>
+      _sharedPreferences.getBool(Constants.hideReceiptReviewBarcodeKey) ?? false;
+
+  Future<void> setHideReceiptReviewBarcode(bool value) async {
+    await _sharedPreferences.setBool(Constants.hideReceiptReviewBarcodeKey, value);
+  }
+
+  int get receiptReviewBarcodeSize =>
+      _sharedPreferences.getInt(Constants.receiptReviewBarcodeSizeKey) ?? defaultReviewBarcodeSize;
+
+  Future<void> setReceiptReviewBarcodeSize(int value) async {
+    await _sharedPreferences.setInt(
+      Constants.receiptReviewBarcodeSizeKey,
+      value.clamp(1, 8),
+    );
+  }
+
+  QRSize get receiptReviewQrSize {
+    return switch (receiptReviewBarcodeSize) {
+      1 => QRSize.size1,
+      2 => QRSize.size2,
+      3 => QRSize.size3,
+      4 => QRSize.size4,
+      5 => QRSize.size5,
+      6 => QRSize.size6,
+      7 => QRSize.size7,
+      8 => QRSize.size8,
+      _ => QRSize.size3,
+    };
+  }
+
   static const String defaultThankYouMessage = 'Thanks for your order!';
 
   String get receiptThankYouMessage =>
@@ -411,11 +444,13 @@ class PrinterService {
         ticket.text('Note: ${transaction.description!.trim()}');
       }
 
-      ticket.emptyLines();
-      ticket.qrcode(
-        'https://search.google.com/local/writereview/mobile?placeid=ChIJsT8cF-S9eC4RnrekN3z63eI',
-        size: QRSize.size3,
-      );
+      if (!hideReceiptReviewBarcode) {
+        ticket.emptyLines();
+        ticket.qrcode(
+          'https://search.google.com/local/writereview/mobile?placeid=ChIJsT8cF-S9eC4RnrekN3z63eI',
+          size: receiptReviewQrSize,
+        );
+      }
       ticket.emptyLines();
       if (!hideReceiptThankYouMessage && receiptThankYouMessage.trim().isNotEmpty) {
         ticket.text(receiptThankYouMessage.trim(), align: PrintAlign.center);
